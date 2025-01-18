@@ -1,0 +1,719 @@
+[{
+  "_id": {
+    "$oid": "64b6a232ec759cbfbc9fa80b"
+  },
+  "name": "Habille1",
+  "image1": "https://res.cloudinary.com/dkfddtykk/image/upload/v1689690668/images/tik3ztx8ztpi0ixlatjs.jpg",
+  "image2": "https://res.cloudinary.com/dkfddtykk/image/upload/v1689690670/images/qoxtje6jagttan9ojmfo.jpg",
+  "image3": "https://res.cloudinary.com/dkfddtykk/image/upload/v1689690673/images/cxh0jo3yfag9duepgmwo.jpg",
+  "marque": "Habille1",
+  "quantite": 12,
+  "prix": 12000,
+  "prixPromo": 10000,
+  "description": "<p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptatum, dolores? Architecto voluptates modi autem rerum, tempora corrupti, ad ratione impedit placeat veniam quos unde nemo sint fugit quo consequatur beatae provident necessitatibus sed? Cumque quo veniam, minus laudantium reprehenderit id. produit1</p>",
+  "taille": [
+    "11.4,33,33"
+  ],
+  "couleur": [
+    "red,green,blue"
+  ],
+  "ClefType": "64b697a5844bb87e1256328f",
+  "Clefournisseur": "64b6a111ec759cbfbc9fa7ed",
+  "dateCreating": {
+    "$date": "2023-07-18T14:31:14.333Z"
+  },
+  "__v": 0,
+  "prixLivraison": 0,
+  "prixf": 4
+},{
+  "_id": {
+    "$oid": "64b6a27dec759cbfbc9fa80d"
+  },
+  "name": "Habille2MM",
+  "image1": "https://res.cloudinary.com/dkfddtykk/image/upload/v1689690743/images/f7qyiwbafpms19zcgbqn.jpg",
+  "image2": "https://res.cloudinary.com/dkfddtykk/image/upload/v1689690746/images/q1ukk8jdvfqffvktdzot.jpg",
+  "image3": "https://res.cloudinary.com/dkfddtykk/image/upload/v1689690748/images/jfwnakv8ey8mkfddfu0p.jpg",
+  "marque": "Habille1",
+  "quantite": 30,
+  "prix": 12000,
+  "prixPromo": 11000,
+  "description": "<p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptatum, dolores? Architecto voluptates modi autem rerum, tempora corrupti, ad ratione impedit placeat veniam quos unde nemo sint fugit quo consequatur beatae provident necessitatibus sed? Cumque quo veniam, minus laudantium reprehenderit id. produit2</p>",
+  "taille": [
+    "11.4,33,33"
+  ],
+  "couleur": [
+    "red,green,blue"
+  ],
+  "ClefType": "64b697a5844bb87e1256328f",
+  "Clefournisseur": "64b6a111ec759cbfbc9fa7ed",
+  "dateCreating": {
+    "$date": "2023-07-18T14:32:29.570Z"
+  },
+  "__v": 0,
+  "prixLivraison": 0,
+  "prixf": 10000
+},{
+  "_id": {
+    "$oid": "64b6a2e7ec759cbfbc9fa80f"
+  },
+  "name": "Habille3",
+  "image1": "https://res.cloudinary.com/dkfddtykk/image/upload/v1689690850/images/rsvubxzqaclk2c4iqiu3.jpg",
+  "image2": "https://res.cloudinary.com/dkfddtykk/image/upload/v1689690852/images/j3mzb9cdoyw1lgviytpp.jpg",
+  "image3": "https://res.cloudinary.com/dkfddtykk/image/upload/v1689690855/images/fmpbeypvcf80eb1sr0yo.jpg",
+  "marque": "Habille3",
+  "quantite": 20,
+  "prix": 12000,
+  "prixPromo": 11000,
+  "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptatum, dolores? Architecto voluptates modi autem rerum, tempora corrupti, ad ratione impedit placeat veniam quos unde nemo sint fugit quo consequatur beatae provident necessitatibus sed? Cumque quo veniam, minus laudantium reprehenderit id. produit3 ",
+  "taille": [
+    "11.4,33,33,42"
+  ],
+  "couleur": [
+    "red,green,blue,yellow"
+  ],
+  "ClefType": "64b697a5844bb87e1256328f",
+  "Clefournisseur": "64b6a111ec759cbfbc9fa7ed",
+  "dateCreating": {
+    "$date": "2023-07-18T14:34:15.914Z"
+  },
+  "__v": 0
+},{
+  "_id": {
+    "$oid": "64b6a374ec759cbfbc9fa811"
+  },
+  "name": "Habille4",
+  "image1": "https://res.cloudinary.com/dkfddtykk/image/upload/v1689690992/images/addrkarocx4zrceryirx.jpg",
+  "image2": "https://res.cloudinary.com/dkfddtykk/image/upload/v1689690994/images/kketr8zzvo8iafq9tmpk.jpg",
+  "image3": "https://res.cloudinary.com/dkfddtykk/image/upload/v1689690996/images/xsdfdkq9yrhse545aphu.jpg",
+  "marque": "Habille4",
+  "quantite": 30,
+  "prix": 12000,
+  "prixPromo": 11500,
+  "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptatum, dolores? Architecto voluptates modi autem rerum, tempora corrupti, ad ratione impedit placeat veniam quos unde nemo sint fugit quo consequatur beatae provident necessitatibus sed? Cumque quo veniam, minus laudantium reprehenderit id. produit4 ",
+  "taille": [
+    "11.4,33,33,42"
+  ],
+  "couleur": [
+    "red,green,blue,yellow"
+  ],
+  "ClefType": "64b697a5844bb87e1256328f",
+  "Clefournisseur": "64b6a111ec759cbfbc9fa7ed",
+  "dateCreating": {
+    "$date": "2023-07-18T14:36:36.967Z"
+  },
+  "__v": 0
+},{
+  "_id": {
+    "$oid": "64b6a378ec759cbfbc9fa813"
+  },
+  "name": "Habille4",
+  "image1": "https://res.cloudinary.com/dkfddtykk/image/upload/v1693848180/images/dj24tkvpdoas66qxsyyn.png",
+  "image2": "https://res.cloudinary.com/dkfddtykk/image/upload/v1693848219/images/cfgruvtaxpsqfojzs84h.jpg",
+  "image3": "https://res.cloudinary.com/dkfddtykk/image/upload/v1689690999/images/tcdksvy91q5i9vzfgmif.jpg",
+  "marque": "Habille4",
+  "quantite": 30,
+  "prix": 12000,
+  "prixPromo": 11500,
+  "description": "<p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptatum, dolores? Architecto voluptates modi autem rerum, tempora corrupti, ad ratione impedit placeat veniam quos unde nemo sint fugit quo consequatur beatae provident necessitatibus sed? Cumque quo veniam, minus laudantium reprehenderit id. produit44</p>",
+  "taille": [
+    "11.4,12.0"
+  ],
+  "couleur": [
+    "red,black"
+  ],
+  "ClefType": "64b6aa3049267405bda32a68",
+  "Clefournisseur": "64b6a111ec759cbfbc9fa7ed",
+  "dateCreating": {
+    "$date": "2023-07-18T14:36:40.219Z"
+  },
+  "__v": 0,
+  "pictures": [
+    "https://res.cloudinary.com/dkfddtykk/image/upload/v1693848137/images/ebf7rmdzyvqzxx995v1k.png",
+    "https://res.cloudinary.com/dkfddtykk/image/upload/v1693848139/images/q06imswylyvhwysjfrei.png",
+    "https://res.cloudinary.com/dkfddtykk/image/upload/v1693848141/images/aurdwlgp9c0yetk88eb0.jpg"
+  ]
+},{
+  "_id": {
+    "$oid": "64b6a48d49267405bda32964"
+  },
+  "name": "Habille6",
+  "image1": "https://res.cloudinary.com/dkfddtykk/image/upload/v1689691273/images/ay0fsfeqhqxejbhzripk.jpg",
+  "image2": "https://res.cloudinary.com/dkfddtykk/image/upload/v1689691275/images/xvgrrdgwjgfqqxagsmku.jpg",
+  "image3": "https://res.cloudinary.com/dkfddtykk/image/upload/v1689691276/images/rzq0basd2ytu0d4pqfrr.jpg",
+  "marque": "Habille4",
+  "quantite": 30,
+  "prix": 12000,
+  "prixPromo": 11500,
+  "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptatum, dolores? Architecto voluptates modi autem rerum, tempora corrupti, ad ratione impedit placeat veniam quos unde nemo sint fugit quo consequatur beatae provident necessitatibus sed? Cumque quo veniam, minus laudantium reprehenderit id. produit4 ",
+  "taille": [
+    "11.4,33,33,42"
+  ],
+  "couleur": [
+    "red,green,blue,yellow"
+  ],
+  "ClefType": "64b697a5844bb87e1256328f",
+  "Clefournisseur": "64b6a111ec759cbfbc9fa7ed",
+  "dateCreating": {
+    "$date": "2023-07-18T14:41:17.516Z"
+  },
+  "__v": 0
+},{
+  "_id": {
+    "$oid": "64b6a4eb49267405bda32966"
+  },
+  "name": "Habille7",
+  "image1": "https://res.cloudinary.com/dkfddtykk/image/upload/v1689691368/images/fkxxylasxgfgrdxnflrm.jpg",
+  "image2": "https://res.cloudinary.com/dkfddtykk/image/upload/v1689691369/images/v9cugbvtuvvn099omtcy.jpg",
+  "image3": "https://res.cloudinary.com/dkfddtykk/image/upload/v1689691370/images/odhiavcfujlehu4etq9i.jpg",
+  "marque": "Habille4",
+  "quantite": 30,
+  "prix": 12000,
+  "prixPromo": 11500,
+  "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptatum, dolores? Architecto voluptates modi autem rerum, tempora corrupti, ad ratione impedit placeat veniam quos unde nemo sint fugit quo consequatur beatae provident necessitatibus sed? Cumque quo veniam, minus laudantium reprehenderit id. produit7 ",
+  "taille": [
+    "11.4,33,33,42"
+  ],
+  "couleur": [
+    "red,green,blue,yellow"
+  ],
+  "ClefType": "64b697a5844bb87e1256328f",
+  "Clefournisseur": "64b6a111ec759cbfbc9fa7ed",
+  "dateCreating": {
+    "$date": "2023-07-18T14:42:51.390Z"
+  },
+  "__v": 0
+},{
+  "_id": {
+    "$oid": "64b6a53049267405bda32968"
+  },
+  "name": "Habille8",
+  "image1": "https://res.cloudinary.com/dkfddtykk/image/upload/v1689691435/images/xcssne1i5vuxuv7o1bek.jpg",
+  "image2": "https://res.cloudinary.com/dkfddtykk/image/upload/v1689691438/images/bm93kl5ho8nbtexuqlno.jpg",
+  "image3": "https://res.cloudinary.com/dkfddtykk/image/upload/v1689691440/images/rrp6pnlxfnonhe13pdpf.jpg",
+  "marque": "Habille4",
+  "quantite": 30,
+  "prix": 12000,
+  "prixPromo": 11800,
+  "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptatum, dolores? Architecto voluptates modi autem rerum, tempora corrupti, ad ratione impedit placeat veniam quos unde nemo sint fugit quo consequatur beatae provident necessitatibus sed? Cumque quo veniam, minus laudantium reprehenderit id. produit8 ",
+  "taille": [
+    "11.4,33,33,42"
+  ],
+  "couleur": [
+    "red,green,blue,yellow"
+  ],
+  "ClefType": "64b697a5844bb87e1256328f",
+  "Clefournisseur": "64b6a111ec759cbfbc9fa7ed",
+  "dateCreating": {
+    "$date": "2023-07-18T14:44:00.702Z"
+  },
+  "__v": 0
+},{
+  "_id": {
+    "$oid": "64b6a5ae49267405bda3296a"
+  },
+  "name": "Habille8",
+  "image1": "https://res.cloudinary.com/dkfddtykk/image/upload/v1689691560/images/sxkz3z4uu00uxjjkoqme.jpg",
+  "image2": "https://res.cloudinary.com/dkfddtykk/image/upload/v1689691563/images/bffdur4vndiqnfxijzfs.jpg",
+  "image3": "https://res.cloudinary.com/dkfddtykk/image/upload/v1689691565/images/tztgato2n04goptsjnqp.jpg",
+  "marque": "Habille4",
+  "quantite": 30,
+  "prix": 12000,
+  "prixPromo": 11800,
+  "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptatum, dolores? Architecto voluptates modi autem rerum, tempora corrupti, ad ratione impedit placeat veniam quos unde nemo sint fugit quo consequatur beatae provident necessitatibus sed? Cumque quo veniam, minus laudantium reprehenderit id. produit8 ",
+  "taille": [
+    "11.4,33,33,42"
+  ],
+  "couleur": [
+    "red,green,blue"
+  ],
+  "ClefType": "64b697a5844bb87e1256328f",
+  "Clefournisseur": "64b6a111ec759cbfbc9fa7ed",
+  "dateCreating": {
+    "$date": "2023-07-18T14:46:06.071Z"
+  },
+  "__v": 0
+},{
+  "_id": {
+    "$oid": "64b6a68149267405bda3296e"
+  },
+  "name": "Habille10",
+  "image1": "https://res.cloudinary.com/dkfddtykk/image/upload/v1689691770/images/g0ggk6dqkowkwq7ydhlj.jpg",
+  "image2": "https://res.cloudinary.com/dkfddtykk/image/upload/v1689691774/images/b4acfqfhe9op3xexh9n1.jpg",
+  "image3": "https://res.cloudinary.com/dkfddtykk/image/upload/v1689691776/images/a3htkpwqvamknx3em3qi.jpg",
+  "marque": "Habille4",
+  "quantite": 30,
+  "prix": 12000,
+  "prixPromo": 11800,
+  "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptatum, dolores? Architecto voluptates modi autem rerum, tempora corrupti, ad ratione impedit placeat veniam quos unde nemo sint fugit quo consequatur beatae provident necessitatibus sed? Cumque quo veniam, minus laudantium reprehenderit id. produit8 ",
+  "taille": [
+    "11.4,33,33,42"
+  ],
+  "couleur": [
+    "red,green,blue"
+  ],
+  "ClefType": "64b697a5844bb87e1256328f",
+  "Clefournisseur": "64b6a111ec759cbfbc9fa7ed",
+  "dateCreating": {
+    "$date": "2023-07-18T14:49:37.047Z"
+  },
+  "__v": 0
+},{
+  "_id": {
+    "$oid": "64b6aad349267405bda32a8c"
+  },
+  "name": "ordinateur1",
+  "image1": "https://res.cloudinary.com/dkfddtykk/image/upload/v1689692878/images/pz2zhhdnhvertluupcoi.jpg",
+  "image2": "https://res.cloudinary.com/dkfddtykk/image/upload/v1689692880/images/wltvuuu88ezaqcbocsfk.jpg",
+  "image3": "https://res.cloudinary.com/dkfddtykk/image/upload/v1689692883/images/bvxtbxbdavspsjdsf307.jpg",
+  "marque": "toshiba",
+  "quantite": 30,
+  "prix": 100000,
+  "prixPromo": 95000,
+  "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptatum, dolores? Architecto voluptates modi autem rerum, tempora corrupti, ad ratione impedit placeat veniam quos unde nemo sint fugit quo consequatur beatae provident necessitatibus sed? Cumque quo veniam, minus laudantium reprehenderit id.",
+  "taille": [
+    "11.4,33,33,42"
+  ],
+  "couleur": [
+    "red,green,blue,black"
+  ],
+  "ClefType": "64b6aa3049267405bda32a68",
+  "Clefournisseur": "64b6a111ec759cbfbc9fa7ed",
+  "dateCreating": {
+    "$date": "2023-07-18T15:08:03.807Z"
+  },
+  "__v": 0
+},{
+  "_id": {
+    "$oid": "64b6ab0249267405bda32a8e"
+  },
+  "name": "ordinateur2",
+  "image1": "https://res.cloudinary.com/dkfddtykk/image/upload/v1689692925/images/tmldtjv6cdkgafmzr6rx.jpg",
+  "image2": "https://res.cloudinary.com/dkfddtykk/image/upload/v1689692927/images/swmip14fwgaqblt1msds.jpg",
+  "image3": "https://res.cloudinary.com/dkfddtykk/image/upload/v1689692929/images/au264dmv7yixuxjxy9ay.jpg",
+  "marque": "toshiba",
+  "quantite": 30,
+  "prix": 100000,
+  "prixPromo": 95000,
+  "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptatum, dolores? Architecto voluptates modi autem rerum, tempora corrupti, ad ratione impedit placeat veniam quos unde nemo sint fugit quo consequatur beatae provident necessitatibus sed? Cumque quo veniam, minus laudantium reprehenderit id.2",
+  "taille": [
+    "11.4,33,33,42"
+  ],
+  "couleur": [
+    "red,green,blue,black"
+  ],
+  "ClefType": "64b6aa3049267405bda32a68",
+  "Clefournisseur": "64b6a111ec759cbfbc9fa7ed",
+  "dateCreating": {
+    "$date": "2023-07-18T15:08:50.275Z"
+  },
+  "__v": 0
+},{
+  "_id": {
+    "$oid": "64b6ab2f49267405bda32a90"
+  },
+  "name": "ordinateur3",
+  "image1": "https://res.cloudinary.com/dkfddtykk/image/upload/v1689692966/images/uyqyiba5fzuhljrqhbur.jpg",
+  "image2": "https://res.cloudinary.com/dkfddtykk/image/upload/v1689692968/images/rkpnctzfphlyuhjbm5bi.jpg",
+  "image3": "https://res.cloudinary.com/dkfddtykk/image/upload/v1689692975/images/s3pgob39e63nycwlrbwt.jpg",
+  "marque": "toshiba",
+  "quantite": 30,
+  "prix": 100000,
+  "prixPromo": 95000,
+  "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptatum, dolores? Architecto voluptates modi autem rerum, tempora corrupti, ad ratione impedit placeat veniam quos unde nemo sint fugit quo consequatur beatae provident necessitatibus sed? Cumque quo veniam, minus laudantium reprehenderit id.3",
+  "taille": [
+    "11.4,33,33,42"
+  ],
+  "couleur": [
+    "red,green,blue,black"
+  ],
+  "ClefType": "64b6aa3049267405bda32a68",
+  "Clefournisseur": "64b6a111ec759cbfbc9fa7ed",
+  "dateCreating": {
+    "$date": "2023-07-18T15:09:35.870Z"
+  },
+  "__v": 0
+},{
+  "_id": {
+    "$oid": "64b6ab6749267405bda32a92"
+  },
+  "name": "ordinateur4",
+  "image1": "https://res.cloudinary.com/dkfddtykk/image/upload/v1689693021/images/kjc6baojpkizmeut0ffy.jpg",
+  "image2": "https://res.cloudinary.com/dkfddtykk/image/upload/v1689693024/images/v2ftrgnvhnrwfrkelzvj.jpg",
+  "image3": "https://res.cloudinary.com/dkfddtykk/image/upload/v1689693030/images/xufifwbbia2a5bbcs0q8.jpg",
+  "marque": "toshiba",
+  "quantite": 30,
+  "prix": 100000,
+  "prixPromo": 95000,
+  "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptatum, dolores? Architecto voluptates modi autem rerum, tempora corrupti, ad ratione impedit placeat veniam quos unde nemo sint fugit quo consequatur beatae provident necessitatibus sed? Cumque quo veniam, minus laudantium reprehenderit id.4",
+  "taille": [
+    "11.4,33,33,42"
+  ],
+  "couleur": [
+    "red,green,blue,black"
+  ],
+  "ClefType": "64b6aa3049267405bda32a68",
+  "Clefournisseur": "64b6a111ec759cbfbc9fa7ed",
+  "dateCreating": {
+    "$date": "2023-07-18T15:10:31.481Z"
+  },
+  "__v": 0
+},{
+  "_id": {
+    "$oid": "64b6ab9a49267405bda32a94"
+  },
+  "name": "ordinateur5",
+  "image1": "https://res.cloudinary.com/dkfddtykk/image/upload/v1689693076/images/ecqwjwzurrj5mawvyjou.jpg",
+  "image2": "https://res.cloudinary.com/dkfddtykk/image/upload/v1689693079/images/ibtpepvomc8ymuazov4v.jpg",
+  "image3": "https://res.cloudinary.com/dkfddtykk/image/upload/v1689693081/images/iqftxmlzpsofnfrnyds1.jpg",
+  "marque": "toshiba",
+  "quantite": 30,
+  "prix": 100000,
+  "prixPromo": 95000,
+  "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptatum, dolores? Architecto voluptates modi autem rerum, tempora corrupti, ad ratione impedit placeat veniam quos unde nemo sint fugit quo consequatur beatae provident necessitatibus sed? Cumque quo veniam, minus laudantium reprehenderit id.5",
+  "taille": [
+    "11.4,33,33,42"
+  ],
+  "couleur": [
+    "red,green,blue,black"
+  ],
+  "ClefType": "64b6aa3049267405bda32a68",
+  "Clefournisseur": "64b6a111ec759cbfbc9fa7ed",
+  "dateCreating": {
+    "$date": "2023-07-18T15:11:22.064Z"
+  },
+  "__v": 0
+},{
+  "_id": {
+    "$oid": "64b6abb449267405bda32a96"
+  },
+  "name": "ordinateur6",
+  "image1": "https://res.cloudinary.com/dkfddtykk/image/upload/v1689693101/images/lapfyxznhz3l032sbpqz.jpg",
+  "image2": "https://res.cloudinary.com/dkfddtykk/image/upload/v1689693104/images/eqtb9ckbjakxvwfwtbzi.jpg",
+  "image3": "https://res.cloudinary.com/dkfddtykk/image/upload/v1689693107/images/z3ekvvkoo7fomtexuzy1.jpg",
+  "marque": "toshiba",
+  "quantite": 30,
+  "prix": 100000,
+  "prixPromo": 95000,
+  "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptatum, dolores? Architecto voluptates modi autem rerum, tempora corrupti, ad ratione impedit placeat veniam quos unde nemo sint fugit quo consequatur beatae provident necessitatibus sed? Cumque quo veniam, minus laudantium reprehenderit id.6",
+  "taille": [
+    "11.4,33,33,42"
+  ],
+  "couleur": [
+    "red,green,blue,black"
+  ],
+  "ClefType": "64b6aa3049267405bda32a68",
+  "Clefournisseur": "64b6a111ec759cbfbc9fa7ed",
+  "dateCreating": {
+    "$date": "2023-07-18T15:11:48.243Z"
+  },
+  "__v": 0
+},{
+  "_id": {
+    "$oid": "64b6abd349267405bda32a98"
+  },
+  "name": "ordinateur7",
+  "image1": "https://res.cloudinary.com/dkfddtykk/image/upload/v1689693133/images/pzwqocdxqwbilotv4p9x.jpg",
+  "image2": "https://res.cloudinary.com/dkfddtykk/image/upload/v1689693136/images/lqkilx8vasfizmych5zs.jpg",
+  "image3": "https://res.cloudinary.com/dkfddtykk/image/upload/v1689693138/images/asumi4blkvmlutwqjbxr.jpg",
+  "marque": "toshiba",
+  "quantite": 30,
+  "prix": 100000,
+  "prixPromo": 95000,
+  "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptatum, dolores? Architecto voluptates modi autem rerum, tempora corrupti, ad ratione impedit placeat veniam quos unde nemo sint fugit quo consequatur beatae provident necessitatibus sed? Cumque quo veniam, minus laudantium reprehenderit id.7",
+  "taille": [
+    "11.4,33,33,42"
+  ],
+  "couleur": [
+    "red,green,blue,black"
+  ],
+  "ClefType": "64b6aa3049267405bda32a68",
+  "Clefournisseur": "64b6a111ec759cbfbc9fa7ed",
+  "dateCreating": {
+    "$date": "2023-07-18T15:12:19.274Z"
+  },
+  "__v": 0
+},{
+  "_id": {
+    "$oid": "64b6abf649267405bda32a9a"
+  },
+  "name": "ordinateur8",
+  "image1": "https://res.cloudinary.com/dkfddtykk/image/upload/v1689693170/images/xbwhdgaiozfsrvyuqnaq.jpg",
+  "image2": "https://res.cloudinary.com/dkfddtykk/image/upload/v1689693171/images/gaswwxar3vj6ypdra9um.jpg",
+  "image3": "https://res.cloudinary.com/dkfddtykk/image/upload/v1689693173/images/rarnrzxtmunz2no2sybn.jpg",
+  "marque": "toshiba",
+  "quantite": 30,
+  "prix": 100000,
+  "prixPromo": 95000,
+  "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptatum, dolores? Architecto voluptates modi autem rerum, tempora corrupti, ad ratione impedit placeat veniam quos unde nemo sint fugit quo consequatur beatae provident necessitatibus sed? Cumque quo veniam, minus laudantium reprehenderit id.8",
+  "taille": [
+    "11.4,33,33,42"
+  ],
+  "couleur": [
+    "red,green,blue,black"
+  ],
+  "ClefType": "64b6aa3049267405bda32a68",
+  "Clefournisseur": "64b6a111ec759cbfbc9fa7ed",
+  "dateCreating": {
+    "$date": "2023-07-18T15:12:54.999Z"
+  },
+  "__v": 0
+},{
+  "_id": {
+    "$oid": "64b6ac0e49267405bda32a9c"
+  },
+  "name": "ordinateur9",
+  "image1": "https://res.cloudinary.com/dkfddtykk/image/upload/v1689693193/images/j5q36eohhfqn2rmvgncc.jpg",
+  "image2": "https://res.cloudinary.com/dkfddtykk/image/upload/v1689693196/images/k29zv5lsyglzzt6wvmiy.jpg",
+  "image3": "https://res.cloudinary.com/dkfddtykk/image/upload/v1689693197/images/bsvphphfdgcd4bgkrw9v.jpg",
+  "marque": "toshiba",
+  "quantite": 30,
+  "prix": 100000,
+  "prixPromo": 95000,
+  "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptatum, dolores? Architecto voluptates modi autem rerum, tempora corrupti, ad ratione impedit placeat veniam quos unde nemo sint fugit quo consequatur beatae provident necessitatibus sed? Cumque quo veniam, minus laudantium reprehenderit id.9",
+  "taille": [
+    "11.4,33,33,42"
+  ],
+  "couleur": [
+    "red,green,blue,black"
+  ],
+  "ClefType": "64b6aa3049267405bda32a68",
+  "Clefournisseur": "64b6a111ec759cbfbc9fa7ed",
+  "dateCreating": {
+    "$date": "2023-07-18T15:13:18.739Z"
+  },
+  "__v": 0
+},{
+  "_id": {
+    "$oid": "64b6ac2d49267405bda32a9e"
+  },
+  "name": "ordinateur10",
+  "image1": "https://res.cloudinary.com/dkfddtykk/image/upload/v1689693225/images/hv8g3uehsvvlotyk43fx.jpg",
+  "image2": "https://res.cloudinary.com/dkfddtykk/image/upload/v1689693226/images/ezweat4zgsbpbkm2cbrf.jpg",
+  "image3": "https://res.cloudinary.com/dkfddtykk/image/upload/v1689693228/images/bocqqfnntehmyaxix2yb.jpg",
+  "marque": "toshiba",
+  "quantite": 30,
+  "prix": 100000,
+  "prixPromo": 0,
+  "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptatum, dolores? Architecto voluptates modi autem rerum, tempora corrupti, ad ratione impedit placeat veniam quos unde nemo sint fugit quo consequatur beatae provident necessitatibus sed? Cumque quo veniam, minus laudantium reprehenderit id.10",
+  "taille": [
+    "11.4,33,33,42"
+  ],
+  "couleur": [
+    "red,green,blue,black"
+  ],
+  "ClefType": "64b6aa3049267405bda32a68",
+  "Clefournisseur": "64b6a111ec759cbfbc9fa7ed",
+  "dateCreating": {
+    "$date": "2023-07-18T15:13:49.410Z"
+  },
+  "__v": 0
+},{
+  "_id": {
+    "$oid": "64b8f1297507c95151b48e8f"
+  },
+  "name": "Baskette1",
+  "image1": "https://res.cloudinary.com/dkfddtykk/image/upload/v1689841956/images/kje4h0okn2ubyem9taeg.jpg",
+  "image2": "https://res.cloudinary.com/dkfddtykk/image/upload/v1689841958/images/oxdlmcudtw15n5jbqijl.jpg",
+  "image3": "https://res.cloudinary.com/dkfddtykk/image/upload/v1689841959/images/vh1umdqbkhqbuxo6zjxm.jpg",
+  "marque": "nike aire",
+  "quantite": 30,
+  "prix": 13000,
+  "prixPromo": 12600,
+  "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptatum, dolores? Architecto voluptates modi autem rerum, tempora corrupti, ad ratione impedit placeat veniam quos unde nemo sint fugit quo consequatur beatae provident necessitatibus sed? Cumque quo veniam, minus laudantium reprehenderit id.1",
+  "taille": [
+    "11.4,33,33,42"
+  ],
+  "couleur": [
+    "red,green,blue,black"
+  ],
+  "ClefType": "64b8f0b87507c95151b48e87",
+  "Clefournisseur": "64b6a111ec759cbfbc9fa7ed",
+  "dateCreating": {
+    "$date": "2023-07-20T08:32:41.122Z"
+  },
+  "__v": 0
+},{
+  "_id": {
+    "$oid": "64cb80f8db7a1a64aa41a21d"
+  },
+  "name": "Baskette22",
+  "image1": "https://res.cloudinary.com/dkfddtykk/image/upload/v1691058416/images/ryifsokaijaexiy4mlcb.jpg",
+  "image2": "https://res.cloudinary.com/dkfddtykk/image/upload/v1691058418/images/sscxde1nr1axkeo9idgk.jpg",
+  "image3": "https://res.cloudinary.com/dkfddtykk/image/upload/v1691058419/images/yntauloxzk9abfiiuxvg.jpg",
+  "marque": "Baskette2",
+  "quantite": 30,
+  "prix": 12000,
+  "prixPromo": 11800,
+  "description": "<p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptatum, dolores? Architecto voluptates modi autem rerum, tempora corrupti, ad ratione impedit placeat veniam quos unde nemo sint fugit quo consequatur beatae provident necessitatibus sed? Cumque quo veniam, minus laudantium reprehenderit id.Baskette2</p>",
+  "taille": [
+    "11.4,33,33,42"
+  ],
+  "couleur": [
+    "red,green,blue,black"
+  ],
+  "ClefType": "64b8f0b87507c95151b48e87",
+  "Clefournisseur": "64b6a111ec759cbfbc9fa7ed",
+  "pictures": [
+    "https://res.cloudinary.com/dkfddtykk/image/upload/v1691058420/images/qdbhfn1ipmfc2qmv2epw.jpg",
+    "https://res.cloudinary.com/dkfddtykk/image/upload/v1691058422/images/aqv18jxvmh5bn3pmd719.jpg",
+    "https://res.cloudinary.com/dkfddtykk/image/upload/v1691058424/images/uus1yympbtzvkj06wj6e.jpg"
+  ],
+  "dateCreating": {
+    "$date": "2023-08-03T10:27:04.904Z"
+  },
+  "__v": 0,
+  "prixLivraison": 1000
+},{
+  "_id": {
+    "$oid": "64f2ed05e2095fa232b06f2b"
+  },
+  "name": "Lenovo",
+  "image1": "https://res.cloudinary.com/dkfddtykk/image/upload/v1693641977/images/arrc1lwyxwdgtuf6hu1s.webp",
+  "image2": "https://res.cloudinary.com/dkfddtykk/image/upload/v1693641979/images/yogdlrky7fppqfv2ox4r.jpg",
+  "image3": "https://res.cloudinary.com/dkfddtykk/image/upload/v1693641981/images/sw0yckftar47pytbcmot.jpg",
+  "marque": "lenovo",
+  "quantite": 1,
+  "prix": 120000,
+  "prixPromo": 0,
+  "description": "La description du produitasd;qwonq awkdkiuwqedqw dwqidoqw[w klwdlqefiwq kjauwq",
+  "taille": [
+    "11.4,33,33,42"
+  ],
+  "couleur": [
+    "red,green,blue,black"
+  ],
+  "ClefType": "64b6aa3049267405bda32a68",
+  "Clefournisseur": "64b6a111ec759cbfbc9fa7ed",
+  "pictures": [
+    "https://res.cloudinary.com/dkfddtykk/image/upload/v1693641983/images/hluytywa2og3b0ojwrbp.jpg",
+    "https://res.cloudinary.com/dkfddtykk/image/upload/v1693641984/images/a6t2yk3xcji9vjhirgwm.jpg",
+    "https://res.cloudinary.com/dkfddtykk/image/upload/v1693641986/images/fypxb8wd4y8wr1rhhac2.jpg",
+    "https://res.cloudinary.com/dkfddtykk/image/upload/v1693641989/images/d0v7agnqqwhcn1yodfgf.jpg"
+  ],
+  "dateCreating": {
+    "$date": "2023-09-02T08:06:29.621Z"
+  },
+  "__v": 0
+},{
+  "_id": {
+    "$oid": "64f32cb53ab9696a8823ebc1"
+  },
+  "name": "teste",
+  "image1": "https://res.cloudinary.com/dkfddtykk/image/upload/v1693658284/images/bncjjoene1hgqeddwuc9.jpg",
+  "image2": "https://res.cloudinary.com/dkfddtykk/image/upload/v1693658286/images/dfyy09b6j0pliuxyhual.png",
+  "image3": "https://res.cloudinary.com/dkfddtykk/image/upload/v1693658288/images/pgbywbj5iebpwzaciq9c.jpg",
+  "marque": "Nike",
+  "quantite": 12,
+  "prix": 1232222,
+  "prixPromo": 0,
+  "description": "<p>La description du produit227</p><ol><li>liste1</li><li>liste2</li><li>liste4</li></ol><p><strong>Bold</strong></p><p><strong style=\"color: rgb(0, 102, 204); background-color: rgb(230, 0, 0);\"><u>souligne</u></strong></p>",
+  "taille": [
+    "11.4,33,33,42"
+  ],
+  "couleur": [
+    "red,green,blue,black"
+  ],
+  "ClefType": "64b8f0b87507c95151b48e87",
+  "Clefournisseur": "64b6a111ec759cbfbc9fa7ed",
+  "pictures": [
+    "https://res.cloudinary.com/dkfddtykk/image/upload/v1693658289/images/dzcuqbez0p9lsvn2zkap.png",
+    "https://res.cloudinary.com/dkfddtykk/image/upload/v1693658291/images/gip1wfbuzph84h9vikva.jpg",
+    "https://res.cloudinary.com/dkfddtykk/image/upload/v1693658293/images/ynnfbnkzwttofvfg8fjb.jpg"
+  ],
+  "dateCreating": {
+    "$date": "2023-09-02T12:38:13.963Z"
+  },
+  "__v": 0
+},{
+  "_id": {
+    "$oid": "64f5e7dc676f7357319112c4"
+  },
+  "name": "Le Nom du Produit2222",
+  "image1": "https://res.cloudinary.com/dkfddtykk/image/upload/v1693837266/images/vuuepd4zjq2nq8khsahg.png",
+  "image2": "https://res.cloudinary.com/dkfddtykk/image/upload/v1693837268/images/d8nwauzqrv6zu9kfczws.png",
+  "image3": "https://res.cloudinary.com/dkfddtykk/image/upload/v1693837270/images/ukznr7k06mfjhhjoymjo.png",
+  "marque": "inconu44",
+  "quantite": 12,
+  "prix": 111122,
+  "prixPromo": 0,
+  "description": "<p _msttexthash=\"515151\" _msthash=\"838\">Product descriptiondsa2</p>",
+  "taille": [
+    "11.4"
+  ],
+  "couleur": [
+    "black"
+  ],
+  "ClefType": "null",
+  "Clefournisseur": "64b6a111ec759cbfbc9fa7ed",
+  "pictures": [
+    "https://res.cloudinary.com/dkfddtykk/image/upload/v1693837271/images/dkajosjoubksumlppjqy.png",
+    "https://res.cloudinary.com/dkfddtykk/image/upload/v1693837273/images/okjns0bjmgwddxzcjhni.png",
+    "https://res.cloudinary.com/dkfddtykk/image/upload/v1693837276/images/mghmdlwtcr6tjqzhg3qd.jpg"
+  ],
+  "dateCreating": {
+    "$date": "2023-09-04T14:21:16.696Z"
+  },
+  "__v": 0
+},{
+  "_id": {
+    "$oid": "64fafb4f835bdd208fd639a4"
+  },
+  "name": "Le Nom du Produit23",
+  "image1": "https://res.cloudinary.com/dkfddtykk/image/upload/v1694169925/images/dqx1il7wihdawgz6feau.jpg",
+  "image2": "https://res.cloudinary.com/dkfddtykk/image/upload/v1694169927/images/wfiujtyhlqhms951vk3f.jpg",
+  "image3": "https://res.cloudinary.com/dkfddtykk/image/upload/v1694169929/images/utfr1aez7ktjngagt6ah.jpg",
+  "marque": "inconu2",
+  "quantite": 12,
+  "prix": 232121,
+  "prixPromo": 0,
+  "description": "<p>La description du produitkaduie 12</p>",
+  "taille": [
+    "11.4,33,33,42"
+  ],
+  "couleur": [
+    "red,green,blue,black"
+  ],
+  "ClefType": "64fafb0a835bdd208fd6399c",
+  "Clefournisseur": "64b6a111ec759cbfbc9fa7ed",
+  "pictures": [
+    "https://res.cloudinary.com/dkfddtykk/image/upload/v1694169930/images/oja4pmzsjydeqivcz217.jpg",
+    "https://res.cloudinary.com/dkfddtykk/image/upload/v1694169932/images/rvsd4fr6cdflcqqcpxto.jpg",
+    "https://res.cloudinary.com/dkfddtykk/image/upload/v1694169934/images/uphjuhiytumqhjwaohn9.jpg"
+  ],
+  "dateCreating": {
+    "$date": "2023-09-08T10:45:35.091Z"
+  },
+  "__v": 0
+},{
+  "_id": {
+    "$oid": "653ba2a554189925c6ea9c2c"
+  },
+  "name": "Adamou Abdo",
+  "image1": "https://res.cloudinary.com/dkfddtykk/image/upload/v1698407065/images/vy65gj8ko2xvft6aqcap.png",
+  "image2": "https://res.cloudinary.com/dkfddtykk/image/upload/v1698413143/images/mhaz7zrtk1ejlc7gd0bw.jpg",
+  "image3": "https://res.cloudinary.com/dkfddtykk/image/upload/v1698407069/images/tywrvpylcrku4fc3op3u.png",
+  "marque": "Adamou Abdo",
+  "quantite": 13,
+  "prix": 12000,
+  "prixPromo": 1000,
+  "description": "<p>Enter The Description0009</p>",
+  "taille": [
+    "11.4,33"
+  ],
+  "couleur": [
+    "colors"
+  ],
+  "ClefType": "64b697a5844bb87e1256328f",
+  "Clefournisseur": "651d880099fa3532fd1e25d4",
+  "prixLivraison": 0,
+  "pictures": [
+    "https://res.cloudinary.com/dkfddtykk/image/upload/v1698407070/images/ozxwyp9co3puwvech0z9.jpg",
+    "https://res.cloudinary.com/dkfddtykk/image/upload/v1698407072/images/jviheeb9eqdhr3awgfxn.jpg",
+    "https://res.cloudinary.com/dkfddtykk/image/upload/v1698407074/images/oyner6mqebcdfoh64hmf.jpg",
+    "https://res.cloudinary.com/dkfddtykk/image/upload/v1698407076/images/w3xcifq3x9gksxfvlod8.png"
+  ],
+  "dateCreating": {
+    "$date": "2023-10-27T11:44:37.432Z"
+  },
+  "__v": 0
+}]

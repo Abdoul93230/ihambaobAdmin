@@ -1,0 +1,267 @@
+.MessageDet{
+    width: 100%;
+    height: 100vh;
+    padding: 15px 5px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0x;
+    box-sizing: border-box;
+    /* border: 3px solid crimson; */
+}
+
+.MessageDet .top{
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    /* border: 2px solid crimson; */
+}
+.MessageDet .top .left{
+    display: flex;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.MessageDet .top h2{
+    background-color: #ee7d7d;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    box-shadow: 0px 0px 10px #ff6969ad;
+    color:#fff;
+}
+
+.MessageDet .top span{
+    color: #FF6969;
+    margin-right: 10px;
+}
+
+.MessageDet .top .left .det{
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-direction: column;
+}
+
+
+.MessageDet .top .left .det h4{
+    color: #515C6F;
+    font-weight: lighter;
+    font-size: 20px;
+}
+.MessageDet .top .left .det h5{
+    color: #515C6F;
+
+}
+
+.MessageDet .midel2{
+    width: 100%;
+    overflow: auto;
+    /* border: 2px solid crimson; */
+    margin: 5px auto;
+    text-align:initial;
+    margin-bottom: 10px;
+    height: calc(100vh - 42vh);
+}
+
+.MessageDet .midel2 .custom-editor {
+    max-height: 100px; /* Hauteur maximale avant l'apparition de la barre de défilement */
+    overflow-y: auto; /* Active la barre de défilement verticale si nécessaire */
+    /* Autres styles personnalisés */
+  }
+
+/* Styles pour les messages du client */
+.MessageDet .midel2 .client-message {
+    /* background-color: #007bff; */
+    background-color: #FF6969;
+    color: #fff;
+    margin-right: 20px; /* Espace à droite pour les messages du client */
+    /* margin-left: 10px; */
+    margin-bottom: 10px; /* Espacement entre les messages */
+    padding: 10px 15px;
+    border-radius: 10px;
+    align-self: flex-start; /* Alignement à gauche */
+    position: relative; /* Position relative pour ajouter le coin en bas */
+  }
+  
+  /* Styles pour les messages du fournisseur */
+  .fournisseur-message {
+    background-color: #eee;
+    color: #333;
+    margin-left: 20px; /* Espace à gauche pour les messages du fournisseur */
+    /* margin-right: 10px; */
+    margin-bottom: 10px; /* Espacement entre les messages */
+    padding: 10px;
+    border-radius: 10px;
+    align-self: flex-end; /* Alignement à droite */
+    position: relative; /* Position relative pour ajouter le coin en bas */
+  }
+  
+  /* Style du coin en bas du message */
+  .MessageDet .midel2  .client-message::before,
+  .fournisseur-message::before {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    border-style: solid;
+    border-width: 10px 10px 0 0;
+  }
+  
+  /* Style du coin en bas du message du client */
+  .MessageDet .midel2  .client-message::before {
+    /* border-color: #007bff transparent transparent transparent; */
+    border-color: #FF6969 transparent transparent transparent;;
+    left: 0;
+  }
+  
+  /* Style du coin en bas du message du fournisseur */
+  .MessageDet .midel2  .fournisseur-message::before {
+    border-color: #292727 transparent transparent transparent;
+    right: 0;
+  }
+
+
+.MessageDet .main{
+    width: 100%;
+    height: calc(100vh - 26vh);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    /* border: 2px solid blue; */
+    overflow-y: scroll;
+}
+
+
+.MessageDet .main h5{
+    width: 70%;
+    color: #515C6F;
+    text-align: right;
+    margin-bottom: 10px;
+    margin-top: 10px;
+}
+.MessageDet .main .message{
+    width: 70%;
+    background-color: white;
+    padding: 10px 15px;
+    border-radius: 10px;
+    position: relative;
+}
+
+.MessageDet .main .message .del{
+    position: absolute;
+    top: 1px;
+    right: 1px;
+    color: #515C6F;
+    width: 20px;
+    cursor: pointer;
+}
+
+.MessageDet .main .message p{
+    width: 100%;
+    line-height: 28px;
+    text-align: left;
+    color:  #515C6F;
+    padding: 0px 5px;
+}
+
+.MessageDet .main .message p span{
+    text-decoration: underline;
+    color: #FF6969;
+    margin: 0px 5px;
+}
+.MessageDet .main h6{
+    color: #515C6F;
+}
+
+.MessageDet .bottom{
+    width: 100%;
+    height: 60px;
+    background-color: white;
+    /* position: absolute; */
+    /* bottom: 0px; */
+    /* left: 0px; */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0px 15px;
+    /* position: fixed; */
+}
+
+.MessageDet .midel3 .react-quill {
+    border: 2px solid #ccc;
+    padding: 10px;
+    height: 200px;
+    font-size: 16px;
+  }
+  
+  /* Style du bouton "Envoyer" */
+  .MessageDet .midel3  .button {
+    /* background-color: #007bff; */
+    background-color: #FF6969;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    margin-top: 10px;
+    cursor: pointer;
+  }
+  
+  .MessageDet .midel3  .button:hover {
+    background-color: #0056b3;
+  }
+  .MessageDet .midel3{
+    /* border: 2px solid crimson; */
+    height: auto;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-start;
+    position: absolute;
+    bottom: 0px;
+    left: 0px;
+}
+
+
+.MessageDet .bottom .un{
+    background-color: #515c6f73;
+    color: #515C6F;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+}
+.MessageDet .bottom textarea{
+    color: #515C6F;
+    border: none;
+    width: 70%;
+    padding: 7px ;
+    outline: none;
+    margin-top: 17px;
+    font-size: 15px;
+    line-height: 20px;
+    margin-bottom: 10px;
+}
+
+.MessageDet .bottom .deux{
+    background-color: #FF6969;
+    color: #fff;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+}
+
+
+@media screen and (max-width:400px) {
+    .MessageDet .main .message{
+        width: 90% !important;
+        
+    }
+}
