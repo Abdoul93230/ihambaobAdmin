@@ -8,6 +8,7 @@ import image3 from "../../Images/R3.png";
 
 import image1 from "../../Images/R.jpg";
 import image2 from "../../Images/R2.jpg";
+import { Button } from "@/components/ui/button";
 import {
   ResponsiveContainer,
   ComposedChart,
@@ -212,6 +213,11 @@ function Overview() {
             })}
           </ul>
         </div>
+      </div>
+      <div>
+        <Button>Cliquez ici</Button>
+        <Button variant="destructive">Supprimer</Button>
+        <Button variant="outline">Contour</Button>
       </div>
     </div>
   );

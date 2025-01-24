@@ -1,143 +1,160 @@
 import React, { useEffect, useState } from "react";
-import "./ACustomers.css";
 import { User } from "react-feather";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+
 const BackendUrl = process.env.REACT_APP_Backend_Url;
 
 function ACustomers() {
-  const navigue = useNavigate();
-  const [allUsers, setAllUsers] = useState(null);
-  const [allProfiles, setallprofiles] = useState(null);
-  const [allAddress, setallAdress] = useState(null);
-  const [allcomandes, setAllcommandes] = useState(null);
+  const navigate = useNavigate();
+  const [allUsers, setAllUsers] = useState([]);
+  const [allProfiles, setAllProfiles] = useState([]);
+  const [allAddress, setAllAddress] = useState([]);
+  const [allCommands, setAllCommands] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
-  const Ueserdet = (id) => {
-    navigue(`/Admin/ACustomerDet/${id}`);
+  const fetchData = async () => {
+    try {
+      const [usersRes, profilesRes, addressesRes, commandsRes] =
+        await Promise.all([
+          axios.get(`${BackendUrl}/getUsers`),
+          axios.get(`${BackendUrl}/getUserProfiles`),
+          axios.get(`${BackendUrl}/getAllAddressByUser`),
+          axios.get(`${BackendUrl}/getAllCommandes`),
+        ]);
+      setAllUsers(usersRes.data.data);
+      setAllProfiles(profilesRes.data.data);
+      setAllAddress(addressesRes.data.data);
+      setAllCommands(commandsRes.data.commandes);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
   };
 
   useEffect(() => {
-    axios
-      .get(`${BackendUrl}/getAllCommandes`)
-      .then((commandes) => {
-        setAllcommandes(commandes.data.commandes);
-      })
-      .catch((error) => console.log(error));
-
-    axios
-      .get(`${BackendUrl}/getUsers`)
-      .then((users) => {
-        setAllUsers(users.data.data);
-        // console.log(users.data.data);
-      })
-      .catch((error) => console.log(error));
-
-    axios
-      .get(`${BackendUrl}/getUserProfiles`)
-      .then((users) => {
-        setallprofiles(users.data.data);
-      })
-      .catch((error) => console.log(error));
-    axios
-      .get(`${BackendUrl}/getAllAddressByUser`)
-      .then((users) => {
-        setallAdress(users.data.data);
-      })
-      .catch((error) => console.log(error));
+    fetchData();
   }, []);
 
+  const filteredUsers = allUsers.filter(
+    (user) =>
+      user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const displayedUsers = filteredUsers.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const handlePageChange = (direction) => {
+    if (direction === "prev" && currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    } else if (
+      direction === "next" &&
+      currentPage < Math.ceil(filteredUsers.length / itemsPerPage)
+    ) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const handleUserClick = (id) => {
+    navigate(`/Admin/ACustomerDet/${id}`);
+  };
+
   return (
-    <div className="ACustomers">
-      <div className="top">
-        <h3>Customers</h3>
-        <div className="search">
-          <input type="search" placeholder="Search Customers" />
-          <input type="submit" value="search" />
+    <div className="ACustomers p-4">
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-xl font-semibold">Customers</h3>
+        <div className="flex items-center space-x-2">
+          <input
+            type="search"
+            placeholder="Search Customers"
+            className="border rounded p-2"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
         </div>
       </div>
-      <div className="midel">
-        <div className="tab" style={{ width: "100%", height: "auto" }}>
-          <table>
-            <thead>
-              <tr>
-                <th>img</th>
-                <th>First name</th>
-                <th>Identifiant</th>
-                <th>Email</th>
+      <div className="overflow-x-auto">
+        <table className="table-auto w-full border-collapse border border-gray-300">
+          <thead className="bg-gray-200 sticky top-0">
+            <tr>
+              <th className="border px-4 py-2">Img</th>
+              <th className="border px-4 py-2">First Name</th>
+              <th className="border px-4 py-2">Identifiant</th>
+              <th className="border px-4 py-2">Email</th>
+              <th className="border px-4 py-2">Phone Number</th>
+              <th className="border px-4 py-2">Nbr Orders</th>
+            </tr>
+          </thead>
+          <tbody>
+            {displayedUsers.map((user) => {
+              const profile = allProfiles.find(
+                (prof) => prof.clefUser === user._id
+              );
+              const address = allAddress.find(
+                (addr) => addr.clefUser === user._id
+              );
+              const commandCount = allCommands.filter(
+                (cmd) => cmd.clefUser === user._id
+              ).length;
 
-                <th>Phone number</th>
-                <th>nbr orders</th>
-              </tr>
-            </thead>
-            <tbody>
-              {allUsers?.map((param, index) => {
-                return (
-                  <tr key={index} onClick={() => Ueserdet(param._id)}>
-                    <td>
-                      <div className="img">
-                        {allProfiles?.find(
-                          (prof) => prof.clefUser === param._id
-                        )?.image ? (
-                          <img
-                            src={
-                              allProfiles?.find(
-                                (prof) => prof.clefUser === param._id
-                              )?.image
-                            }
-                            style={{
-                              width: "40px",
-                              height: "40px",
-                              borderRadius: "50%",
-                              margin: "0px auto",
-                            }}
-                          />
-                        ) : (
-                          <User />
-                        )}
-                      </div>
-                    </td>
-                    <td>
-                      {allAddress?.find((prof) => prof.clefUser === param._id)
-                        ?.name
-                        ? allAddress?.find(
-                            (prof) => prof.clefUser === param._id
-                          )?.name
-                        : param?.name
-                        ? param?.name
-                        : "none"}
-                    </td>
-                    <td>{param._id}</td>
-                    <td>{param.email}</td>
-                    <td>
-                      {allProfiles?.find((prof) => prof.clefUser === param._id)
-                        ?.numero
-                        ? allProfiles?.find(
-                            (prof) => prof.clefUser === param._id
-                          )?.numero
-                        : param?.phoneNumber
-                        ? param?.phoneNumber
-                        : "none"}
-                    </td>
-                    <td>
-                      {
-                        allcomandes?.filter(
-                          (item) => item?.clefUser === param._id
-                        )?.length
-                      }
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-        <div className="pagination">
-          <span>Prev</span>
-          <span>1</span>
-          <span>2</span>
-          <span>3</span>
-          <span>Next</span>
-        </div>
+              return (
+                <tr
+                  key={user._id}
+                  className="hover:bg-gray-100 cursor-pointer"
+                  onClick={() => handleUserClick(user._id)}
+                >
+                  <td className="border px-4 py-2 text-center">
+                    {profile?.image ? (
+                      <img
+                        src={profile.image}
+                        alt="User"
+                        className="w-10 h-10 rounded-full mx-auto"
+                      />
+                    ) : (
+                      <User className="w-10 h-10 text-gray-500" />
+                    )}
+                  </td>
+                  <td className="border px-4 py-2">
+                    {address?.name || user.name || "none"}
+                  </td>
+                  <td className="border px-4 py-2">{user._id}</td>
+                  <td className="border px-4 py-2">{user.email}</td>
+                  <td className="border px-4 py-2">
+                    {profile?.numero || user.phoneNumber || "none"}
+                  </td>
+                  <td className="border px-4 py-2 text-center">
+                    {commandCount}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      <div className="flex justify-between items-center mt-4">
+        <button
+          onClick={() => handlePageChange("prev")}
+          disabled={currentPage === 1}
+          className="px-4 py-2 bg-gray-300 rounded disabled:opacity-50"
+        >
+          Prev
+        </button>
+        <span className="text-sm">
+          Page {currentPage} of {Math.ceil(filteredUsers.length / itemsPerPage)}
+        </span>
+        <button
+          onClick={() => handlePageChange("next")}
+          disabled={
+            currentPage === Math.ceil(filteredUsers.length / itemsPerPage)
+          }
+          className="px-4 py-2 bg-gray-300 rounded disabled:opacity-50"
+        >
+          Next
+        </button>
       </div>
     </div>
   );
