@@ -34,6 +34,7 @@ export default function AddProduct() {
     current: "",
     images: [],
   });
+  const admin = JSON.parse(localStorage.getItem("AdminEcomme"));
   const [Clefournisseur, setClefournisseur] = useState(null);
   const [fournisseur, setFournisseur] = useState(null);
   const [ClefType, setClefType] = useState("");
@@ -348,6 +349,8 @@ export default function AddProduct() {
       formData.append("description", productData.desc);
       formData.append("quantite", productData.quantity);
       formData.append("prixPromo", productData.price_Promo);
+      formData.append("sellerOrAdmin", "admin");
+      formData.append("sellerOrAdmin_id", admin?.id);
       // formData.append("couleur", colors);
       formData.append("ClefType", ClefType);
       formData.append("Clefournisseur", Clefournisseur);

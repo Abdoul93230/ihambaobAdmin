@@ -1,11 +1,5 @@
 import React from "react";
 
-// interface SizeSelectorProps {
-//   selectedSizes: string[];
-//   onSizeToggle: (size: string) => void;
-//   sizeType: string;
-// }
-
 const sizeOptions = {
   clothing: ["XS", "S", "M", "L", "XL", "XXL", "3XL"],
   shoes: ["36", "37", "38", "39", "40", "41", "42", "43", "44", "45", "46"],

@@ -13,7 +13,7 @@ import ShippingRatesManager from "../ShippingRatesManager";
 //const BackendUrl = process.env.REACT_APP_Backend_Url;
 // const BackendUrl = "https://secoure.onrender.com";
 const BackendUrl = process.env.REACT_APP_Backend_Url;
-
+const admin = JSON.parse(localStorage.getItem("AdminEcomme"));
 // interface Variant {
 //   id: string;
 //   color: string;
@@ -487,6 +487,8 @@ export default function UpdateProduct() {
       formData.append("prixPromo", productData.pricePromo);
       formData.append("ClefType", ClefType);
       formData.append("Clefournisseur", Clefournisseur);
+      formData.append("sellerOrAdmin", "admin");
+      formData.append("sellerOrAdmin_id", admin?.id);
       formData.append("deletedVariantIds", JSON.stringify(deletedVariantIds));
       formData.append(
         "marque",
