@@ -38,6 +38,7 @@ import Analytics from "../Analytics/Analytics";
 import Imbox from "../Inbox/Imbox";
 import Products from "../Products/Products";
 import AProductDet from "../AProductDet/AProductDet";
+import ProductUpdateStatus from "../AProductDet/ProductUpdateStatus";
 import AProductUpdat from "../AProductUpdat/AProductUpdat";
 import AddProductA from "../AddProductA/AddProductA";
 import ACustomers from "../ACustomers/ACustomers";
@@ -132,6 +133,7 @@ const PAGE_COMPONENTS = {
   AddCategorie,
   AFournisseurUpdate,
   ProductPub,
+  ProductUpdateStatus,
 };
 
 function AdminDashboard({ allCategories, allProducts }) {
@@ -148,6 +150,8 @@ function AdminDashboard({ allCategories, allProducts }) {
   };
 
   const PageComponent = PAGE_COMPONENTS[params.op] || Overview;
+  // console.log({ll:params.op});
+  
 
   return (
     <div className="flex h-screen">

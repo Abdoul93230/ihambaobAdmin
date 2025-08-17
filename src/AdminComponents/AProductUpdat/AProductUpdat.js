@@ -210,8 +210,9 @@ export default function UpdateProduct() {
         const convertedVariants =
           product.variants?.map((variant) => ({
             id: variant._id,
+            colorCode: variant.colorCode,
             color: variant.colorCode,
-            colorName: variant.color,
+            colorName: variant.colorName,
             sizes: variant.sizes,
             imageUrl: variant.imageUrl,
             _id: variant._id,
@@ -438,19 +439,9 @@ export default function UpdateProduct() {
       handleAlertwar(errorMessages.heightInvalid);
       return;
     }
-    if (shippingOptions?.length === 0) {
-      handleAlertwar(errorMessages.zoneInvalid);
-      return;
-    }
+
     if (selectedOriginZone?.length === 0 || selectedOriginZone === "choisir") {
       handleAlertwar(errorMessages.origineInvalid);
-      return;
-    }
-
-    if (validateTransporteurs(shippingOptions)) {
-      // handleAlert("Prêt pour l'envoi au backend.");
-    } else {
-      handleAlertwar("Erreur de validation.");
       return;
     }
 
@@ -530,8 +521,9 @@ export default function UpdateProduct() {
       const convertedVariants =
         product.variants?.map((variant) => ({
           id: variant._id,
+          colorCode: variant.colorCode,
           color: variant.colorCode,
-          colorName: variant.color,
+          colorName: variant.colorName,
           sizes: variant.sizes,
           imageUrl: variant.imageUrl,
           _id: variant._id,
@@ -716,13 +708,6 @@ export default function UpdateProduct() {
                     <></>
                   )}
                 </label>
-                {/* <input
-                  type="number"
-                  value={productData.deliveryPrice}
-                  onChange={e => setProductData(prev => ({ ...prev, deliveryPrice: e.target.value }))}
-                  className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"
-                  min="0"
-                /> */}
                 <select
                   className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"
                   onChange={(e) => {

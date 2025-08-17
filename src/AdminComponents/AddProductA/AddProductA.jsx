@@ -317,21 +317,21 @@ export default function AddProduct() {
       handleAlertwar(errorMessages.heightInvalid);
       return;
     }
-    if (shippingOptions.length === 0) {
-      handleAlertwar(errorMessages.zoneInvalid);
-      return;
-    }
+    // if (shippingOptions.length === 0) {
+    //   handleAlertwar(errorMessages.zoneInvalid);
+    //   return;
+    // }
     if (selectedOriginZone.length === 0 || selectedOriginZone === "choisir") {
       handleAlertwar(errorMessages.origineInvalid);
       return;
     }
 
-    if (validateTransporteurs(shippingOptions)) {
-      handleAlert("Prêt pour l'envoi au backend.");
-    } else {
-      handleAlertwar("Erreur de validation.");
-      return;
-    }
+    // if (validateTransporteurs(shippingOptions)) {
+    //   handleAlert("Prêt pour l'envoi au backend.");
+    // } else {
+    //   handleAlertwar("Erreur de validation.");
+    //   return;
+    // }
 
     // return;
 

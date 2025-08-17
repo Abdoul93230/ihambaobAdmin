@@ -61,6 +61,8 @@ function AFournisseurUpdate() {
     axios
       .get(`${BackendUrl}/fournisseur/${params.id}`)
       .then((res) => {
+        console.log({res});
+        
         const data = res.data.data;
         setFournisseur(data);
         setNom(data.name || "");

@@ -14,6 +14,7 @@ import SizeSelector from "./SizeSelector";
 export default function ProductVariantForm({ variants, setVariants, chg }) {
   const [currentVariant, setCurrentVariant] = useState({
     id: "",
+    colorCode: "#000000",
     color: "#000000",
     colorName: "",
     sizes: [],
@@ -33,6 +34,7 @@ export default function ProductVariantForm({ variants, setVariants, chg }) {
       // Reset current variant
       setCurrentVariant({
         id: "",
+        colorCode: "#000000",
         color: "#000000",
         colorName: "",
         sizes: [],
@@ -86,10 +88,11 @@ export default function ProductVariantForm({ variants, setVariants, chg }) {
             <div className="flex items-center space-x-4">
               <input
                 type="color"
-                value={currentVariant.color}
+                value={currentVariant.colorCode}
                 onChange={(e) =>
                   setCurrentVariant((prev) => ({
                     ...prev,
+                    colorCode: e.target.value,
                     color: e.target.value,
                   }))
                 }
@@ -184,7 +187,8 @@ export default function ProductVariantForm({ variants, setVariants, chg }) {
         <h3 className="text-lg font-semibold text-gray-700 mb-4">
           Variantes ajoutées ({variants.length})
         </h3>
-
+{console.log({variants})
+}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {variants.map((variant) => (
             <div
@@ -208,7 +212,7 @@ export default function ProductVariantForm({ variants, setVariants, chg }) {
                     <div className="flex items-center space-x-2">
                       <div
                         className="w-6 h-6 rounded-full border"
-                        style={{ backgroundColor: variant.color }}
+                        style={{ backgroundColor: variant.colorCode }}
                       />
                       <span className="font-medium">{variant.colorName}</span>
                     </div>

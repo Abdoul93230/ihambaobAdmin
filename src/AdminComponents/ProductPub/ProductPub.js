@@ -26,7 +26,7 @@ function ProductPub() {
     axios
       .get(`${BackendUrl}/productPubget`)
       .then((pub) => {
-        setAllPub(pub.data.length > 0 ? pub.data : null);
+        setAllPub(pub.data.data.length > 0 ? pub.data.data : null);
       })
       .catch((error) => {
         toast({

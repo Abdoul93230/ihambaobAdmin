@@ -119,7 +119,6 @@ function App() {
   return (
     // <Provider store={store}>
     <div className="App">
-      <h1>Admin Admin2</h1>
       <BrowserRouter>
         {verificationComplete ? (
           <Routes>
