@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import "./SellerDet.css";
 import {
   ArrowLeft,
   Edit,
@@ -45,10 +46,21 @@ import {
 
 const BackendUrl = process.env.REACT_APP_Backend_Url;
 
+const getFileExtensionFromUrl = (fileUrl) => {
+  if (!fileUrl) return "";
+
+  const cleanUrl = fileUrl.split("?")[0].split("#")[0].toLowerCase();
+  const urlParts = cleanUrl.split(".");
+
+  return urlParts.length > 1 ? urlParts[urlParts.length - 1] : "";
+};
+
+const IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "gif", "webp", "bmp", "svg"];
+
 const SellerDetails = () => {
   const navigate = useNavigate();
   const params = useParams();
-  
+
   // États pour vos données réelles
   const [seller, setSeller] = useState({});
   const [products, setProducts] = useState([]);
@@ -59,20 +71,45 @@ const SellerDetails = () => {
   const [showValidateModal, setShowValidateModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [productFilter, setProductFilter] = useState("active"); // Changé de "all" à "active"
+  const [suspensionMessage, setSuspensionMessage] = useState('');
+  const ownerIdentityExtension = getFileExtensionFromUrl(seller?.ownerIdentity);
+  const isOwnerIdentityPdf = ownerIdentityExtension === "pdf";
+  const isOwnerIdentityImage = IMAGE_EXTENSIONS.includes(ownerIdentityExtension);
+  const sellerSubscriptionStatus = String(seller?.subscriptionStatus || (seller?.isvalid ? "active" : "suspended")).toLowerCase();
+  const hasSubscriptionReference = Boolean(seller?.subscriptionId);
+  const hasLinkedSubscription = ['active', 'trial'].includes(sellerSubscriptionStatus);
+  const canActivateSeller = !seller?.isvalid && hasLinkedSubscription;
+  const sellerState = seller?.isvalid
+    ? (hasLinkedSubscription ? "Compte actif" : "Actif sans abonnement")
+    : (hasLinkedSubscription ? "Prêt à activer" : "Activation bloquée");
+
+  const subscriptionTone = seller?.isvalid
+    ? (hasLinkedSubscription ? "success" : "warning")
+    : (hasLinkedSubscription ? "info" : "danger");
+
+  const subscriptionLabel = hasLinkedSubscription
+    ? (sellerSubscriptionStatus === "trial" ? "Essai actif" : "Abonnement valide")
+    : (seller?.subscriptionId ? "Abonnement incohérent" : "Aucun abonnement lié");
+
+  const subscriptionHelp = hasLinkedSubscription
+    ? `Plan ${sellerSubscriptionStatus}${seller?.subscriptionId ? " lié au compte" : ""}`
+    : (seller?.subscriptionId
+      ? "Le compte est actif côté interface mais aucun plan valide n\'est associé."
+      : "Le backend bloquera toute activation tant qu\'aucun abonnement valide n\'est créé et lié.");
 
   // Récupération des données (votre code original adapté)
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        
+
         // Récupérer les données du seller
         const sellerResponse = await axios.get(`${BackendUrl}/getSeller/${params.id}`);
         setSeller(sellerResponse.data.data);
 
         // Récupérer les produits du seller
         try {
-          const productsResponse = await axios.get(`${BackendUrl}/searchProductBySupplierAdmin/${params.id}`);
+          const productsResponse = await axios.get(`${BackendUrl}/searchProductBySellerAdmin/${params.id}`);
           setProducts(productsResponse.data.data);
           setProductError(null);
         } catch (error) {
@@ -115,7 +152,7 @@ const SellerDetails = () => {
   };
 
   const getStoreTypeIcon = (type) => {
-    switch(type) {
+    switch (type) {
       case 'physique': return <Store className="w-4 h-4" />;
       case 'enligne': return <Globe className="w-4 h-4" />;
       case 'hybride': return <Building className="w-4 h-4" />;
@@ -133,7 +170,7 @@ const SellerDetails = () => {
         priority: 4
       };
     }
-    
+
     switch (product.isPublished) {
       case "Published":
         return {
@@ -181,17 +218,37 @@ const SellerDetails = () => {
     });
   };
 
+  const formatDateTime = (date) => {
+    if (!date) return 'N/A';
+    return new Date(date).toLocaleString('fr-FR', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const getSubscriptionToneClass = () => {
+    switch (subscriptionTone) {
+      case 'success': return 'seller-tone-success';
+      case 'warning': return 'seller-tone-warning';
+      case 'info': return 'seller-tone-info';
+      default: return 'seller-tone-danger';
+    }
+  };
+
   // Statistiques améliorées avec produits supprimés
   const calculateStats = () => {
     const allProducts = products.length;
     const deletedProducts = products.filter(p => p.isDeleted).length;
     const activeProducts = products.filter(p => !p.isDeleted).length;
-    
+
     // Calculer les stats sur les produits actifs seulement
     const activeProductsList = products.filter(p => !p.isDeleted);
     const totalStock = activeProductsList.reduce((sum, product) => sum + (product.quantite || 0), 0);
     const totalValue = activeProductsList.reduce((sum, product) => sum + ((product.prix || 0) * (product.quantite || 0)), 0);
-    
+
     // Nouvelles statistiques sur les produits actifs
     const validatedProducts = activeProductsList.filter(p => p.isValidated).length;
     const unvalidatedProducts = activeProductsList.filter(p => !p.isValidated).length;
@@ -201,13 +258,13 @@ const SellerDetails = () => {
     const unpublishedProducts = activeProductsList.filter(p => p.isPublished === "UnPublished").length;
     const lowStockProducts = activeProductsList.filter(p => (p.quantite || 0) < 5 && (p.quantite || 0) > 0).length;
     const outOfStockProducts = activeProductsList.filter(p => (p.quantite || 0) === 0).length;
-    
-    return { 
+
+    return {
       allProducts,
       activeProducts,
       deletedProducts,
-      totalStock, 
-      totalValue, 
+      totalStock,
+      totalValue,
       validatedProducts,
       unvalidatedProducts,
       publishedProducts,
@@ -273,15 +330,36 @@ const SellerDetails = () => {
   // Fonction de validation (votre code original)
   const validateSeller = async () => {
     try {
-      await axios.put(`${BackendUrl}/validerDemandeVendeur/${params.id}`, {});
-      
+      if (!seller?.isvalid && !canActivateSeller) {
+        alert("Activation bloquée: ce vendeur n\'a pas d\'abonnement valide lié.");
+        return;
+      }
+
+      // Si on suspend (seller.isvalid === true), on envoie le message
+      // Si on valide (seller.isvalid === false), on envoie un body vide
+      const requestBody = seller.isvalid && suspensionMessage
+        ? { suspensionMessage }
+        : {};
+
+      // Vérifier si un message de suspension est requis
+      if (seller.isvalid && !suspensionMessage.trim()) {
+        alert('Veuillez saisir une raison pour la suspension');
+        return;
+      }
+
+      await axios.put(`${BackendUrl}/validerDemandeVendeur/${params.id}`, requestBody);
+
       // Recharger les données du seller après validation
       const response = await axios.get(`${BackendUrl}/getSeller/${params.id}`);
       setSeller(response.data.data);
-      
+
       setShowValidateModal(false);
+      setSuspensionMessage(''); // Reset du message
     } catch (error) {
       console.log(error);
+      if (error.response?.status === 400) {
+        alert(error.response.data.message);
+      }
     }
   };
 
@@ -296,9 +374,9 @@ const SellerDetails = () => {
       try {
         // Ajoutez votre endpoint de suppression ici
         // await axios.delete(`${BackendUrl}/deleteProduct/${productId}`);
-        
+
         // Recharger les produits
-        const response = await axios.get(`${BackendUrl}/searchProductBySupplierAdmin/${params.id}`);
+        const response = await axios.get(`${BackendUrl}/searchProductBySellerAdmin/${params.id}`);
         setProducts(response.data.data);
       } catch (error) {
         console.log(error);
@@ -312,9 +390,9 @@ const SellerDetails = () => {
       try {
         // Ajoutez votre endpoint de restauration ici
         // await axios.put(`${BackendUrl}/restoreProduct/${productId}`, {});
-        
+
         // Recharger les produits
-        const response = await axios.get(`${BackendUrl}/searchProductBySupplierAdmin/${params.id}`);
+        const response = await axios.get(`${BackendUrl}/searchProductBySellerAdmin/${params.id}`);
         setProducts(response.data.data);
       } catch (error) {
         console.log(error);
@@ -331,9 +409,9 @@ const SellerDetails = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="seller-details-shell min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200">
+      <div className="seller-details-topbar bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
@@ -345,26 +423,27 @@ const SellerDetails = () => {
                 <span>Retour</span>
               </button>
               <div className="w-px h-6 bg-gray-300" />
-              <h1 className="text-xl font-semibold text-gray-900">Détails du Fournisseur</h1>
+              <div>
+                <h1 className="text-xl font-semibold text-gray-900">Détails du vendeur</h1>
+                <p className="text-xs text-gray-500">Vue admin unifiée du compte, des produits et de l'abonnement</p>
+              </div>
             </div>
             <div className="flex items-center space-x-3">
               <button
                 onClick={() => navigate(`/Admin/AFournisseurUpdate/${params.id}`)}
-                className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="seller-action seller-action-primary"
               >
                 <Edit className="w-4 h-4" />
                 <span>Modifier</span>
               </button>
               <button
                 onClick={() => setShowValidateModal(true)}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
-                  seller.isvalid 
-                    ? 'bg-red-100 text-red-700 hover:bg-red-200' 
-                    : 'bg-green-100 text-green-700 hover:bg-green-200'
-                }`}
+                disabled={!seller?.isvalid && !canActivateSeller}
+                title={!seller?.isvalid && !canActivateSeller ? "Activation bloquée: aucun abonnement valide lié" : undefined}
+                className={`seller-action ${seller.isvalid ? 'seller-action-danger' : 'seller-action-success'} ${!seller?.isvalid && !canActivateSeller ? 'seller-action-disabled' : ''}`}
               >
                 {seller.isvalid ? <XCircle className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
-                <span>{seller.isvalid ? 'Désactiver' : 'Valider'}</span>
+                <span>{seller.isvalid ? 'Suspendre' : (!canActivateSeller ? 'Activation bloquée' : 'Valider')}</span>
               </button>
             </div>
           </div>
@@ -372,13 +451,60 @@ const SellerDetails = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className={`seller-overview-banner ${getSubscriptionToneClass()}`}>
+          <div className="seller-overview-banner__left">
+            <div className="seller-overview-avatar">
+              <img
+                src={seller.logo || seller.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(seller.name || 'User')}&background=0F766E&color=fff&size=160`}
+                alt={seller.name}
+                onError={(e) => {
+                  e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(seller.name || 'User')}&background=0F766E&color=fff&size=160`;
+                }}
+              />
+            </div>
+            <div>
+              <div className="seller-overview-kicker">{seller.storeName || 'Boutique sans nom'}</div>
+              <h2 className="seller-overview-title">{seller.name} {seller.userName2}</h2>
+              <p className="seller-overview-subtitle">{seller.storeDescription || 'Aucune description disponible'}</p>
+            </div>
+          </div>
+
+          <div className="seller-overview-banner__middle">
+            <div className="seller-pill-row">
+              <span className={`seller-pill ${seller.isvalid ? 'seller-pill-ok' : 'seller-pill-muted'}`}>
+                {seller.isvalid ? 'Compte validé' : 'Compte en attente'}
+              </span>
+              <span className={`seller-pill ${hasLinkedSubscription ? 'seller-pill-ok' : 'seller-pill-alert'}`}>
+                {subscriptionLabel}
+              </span>
+              <span className="seller-pill seller-pill-neutral">{sellerState}</span>
+            </div>
+            <p className="seller-overview-hint">{subscriptionHelp}</p>
+          </div>
+
+          <div className="seller-overview-banner__right">
+            <div className="seller-mini-stat">
+              <span>Produits</span>
+              <strong>{stats.activeProducts}</strong>
+            </div>
+            <div className="seller-mini-stat">
+              <span>Stock total</span>
+              <strong>{stats.totalStock}</strong>
+            </div>
+            <div className="seller-mini-stat">
+              <span>Mise à jour</span>
+              <strong>{formatDateTime(seller.updatedAt || seller.createdAt)}</strong>
+            </div>
+          </div>
+        </div>
+
         {/* Profile Header */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-8">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-8 seller-card">
           <div className="p-6">
             <div className="flex flex-col lg:flex-row lg:items-start space-y-6 lg:space-y-0 lg:space-x-8">
               {/* Avatar and Basic Info */}
               <div className="flex-shrink-0 text-center lg:text-left">
-                <div className="relative inline-block">
+                <div className="relative inline-block seller-avatar-wrap">
                   <img
                     src={seller.logo || seller.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(seller.name || 'User')}&background=3B82F6&color=fff&size=150`}
                     alt={seller.name}
@@ -387,22 +513,23 @@ const SellerDetails = () => {
                       e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(seller.name || 'User')}&background=3B82F6&color=fff&size=150`;
                     }}
                   />
-                  <div className={`absolute -bottom-2 -right-2 w-8 h-8 rounded-full flex items-center justify-center border-4 border-white ${
-                    seller.isvalid ? 'bg-green-500' : 'bg-yellow-500'
-                  }`}>
-                    {seller.isvalid ? 
-                      <CheckCircle className="w-4 h-4 text-white" /> : 
+                  <div className={`absolute -bottom-2 -right-2 w-8 h-8 rounded-full flex items-center justify-center border-4 border-white ${seller.isvalid ? 'bg-green-500' : 'bg-yellow-500'
+                    }`}>
+                    {seller.isvalid ?
+                      <CheckCircle className="w-4 h-4 text-white" /> :
                       <Clock className="w-4 h-4 text-white" />
                     }
                   </div>
                 </div>
-                <div className="mt-4">
-                  <span className={`inline-flex px-3 py-1 rounded-full text-sm font-medium ${
-                    seller.isvalid 
-                      ? 'bg-green-100 text-green-800' 
-                      : 'bg-yellow-100 text-yellow-800'
-                  }`}>
-                    {seller.isvalid ? 'Compte Validé' : 'En Attente de Validation'}
+                <div className="mt-4 flex flex-wrap justify-center lg:justify-start gap-2">
+                  <span className={`inline-flex px-3 py-1 rounded-full text-sm font-medium ${seller.isvalid
+                    ? 'bg-green-100 text-green-800'
+                    : 'bg-yellow-100 text-yellow-800'
+                    }`}>
+                    {seller.isvalid ? 'Compte validé' : 'En attente de validation'}
+                  </span>
+                  <span className={`inline-flex px-3 py-1 rounded-full text-sm font-medium ${hasLinkedSubscription ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}`}>
+                    {subscriptionLabel}
                   </span>
                 </div>
               </div>
@@ -430,7 +557,9 @@ const SellerDetails = () => {
                   </div>
                 </div>
 
-                <p className="text-gray-600 mb-6">{seller.storeDescription || 'Aucune description disponible'}</p>
+                <div className="seller-quote mb-6">
+                  <p className="text-gray-700">{seller.storeDescription || 'Aucune description disponible'}</p>
+                </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div className="flex items-center space-x-3">
@@ -453,6 +582,36 @@ const SellerDetails = () => {
                 </div>
               </div>
             </div>
+
+            <div className="seller-subscription-panel mt-6">
+              <div className="seller-subscription-panel__header">
+                <div>
+                  <h3>État d'abonnement</h3>
+                  <p>Contrôle d'accès à la vente, aux produits et aux commandes</p>
+                </div>
+                <span className={`seller-pill ${hasLinkedSubscription ? 'seller-pill-ok' : 'seller-pill-alert'}`}>
+                  {subscriptionTone === 'success' ? 'Opérationnel' : 'Bloqué'}
+                </span>
+              </div>
+              <div className="seller-subscription-panel__grid">
+                <div>
+                  <span>Statut backend</span>
+                  <strong>{seller.subscriptionStatus || (seller.isvalid ? 'active' : 'suspended')}</strong>
+                </div>
+                <div>
+                  <span>Abonnement valide lié</span>
+                  <strong>{hasLinkedSubscription ? 'Oui' : (hasSubscriptionReference ? 'Non (incohérent)' : 'Non')}</strong>
+                </div>
+                <div>
+                  <span>Dernière suspension</span>
+                  <strong>{seller.suspensionDate ? formatDateTime(seller.suspensionDate) : 'Aucune'}</strong>
+                </div>
+                <div>
+                  <span>Raison</span>
+                  <strong>{seller.suspensionReason || 'Aucune'}</strong>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -470,7 +629,7 @@ const SellerDetails = () => {
               <Package className="w-8 h-8 text-green-500" />
             </div>
           </div>
-          
+
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
             <div className="flex items-center justify-between">
               <div>
@@ -483,7 +642,7 @@ const SellerDetails = () => {
               <Archive className="w-8 h-8 text-red-500" />
             </div>
           </div>
-          
+
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
             <div className="flex items-center justify-between">
               <div>
@@ -496,7 +655,7 @@ const SellerDetails = () => {
               <ShoppingBag className="w-8 h-8 text-blue-500" />
             </div>
           </div>
-          
+
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
             <div className="flex items-center justify-between">
               <div>
@@ -509,7 +668,7 @@ const SellerDetails = () => {
               <CreditCard className="w-8 h-8 text-purple-500" />
             </div>
           </div>
-          
+
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
             <div className="flex items-center justify-between">
               <div>
@@ -525,8 +684,8 @@ const SellerDetails = () => {
         </div>
 
         {/* Tabs Navigation */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-8">
-          <div className="border-b border-gray-200">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-8 seller-card">
+          <div className="border-b border-gray-200 seller-tabs-shell">
             <nav className="flex space-x-8 px-6" aria-label="Tabs">
               {[
                 { id: 'overview', label: 'Aperçu', icon: User },
@@ -539,11 +698,10 @@ const SellerDetails = () => {
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 transition-colors ${
-                      activeTab === tab.id
-                        ? 'border-blue-500 text-blue-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                    }`}
+                    className={`seller-tab ${activeTab === tab.id
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      }`}
                   >
                     <Icon className="w-4 h-4" />
                     <span>{tab.label}</span>
@@ -579,7 +737,7 @@ const SellerDetails = () => {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">Informations Boutique</h3>
                     <div className="space-y-3">
@@ -661,12 +819,12 @@ const SellerDetails = () => {
                       Affichage des produits <span className="font-medium">{getFilterLabel()}</span>
                     </p>
                   </div>
-                  
+
                   <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
                     <div className="flex items-center space-x-2">
                       <Filter className="w-4 h-4 text-gray-500" />
                       <span className="text-sm text-gray-500">Filtrer par:</span>
-                      <select 
+                      <select
                         value={productFilter}
                         onChange={(e) => setProductFilter(e.target.value)}
                         className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
@@ -692,7 +850,7 @@ const SellerDetails = () => {
                         </optgroup>
                       </select>
                     </div>
-                    
+
                     <div className="flex space-x-2">
                       <button
                         onClick={() => window.location.reload()}
@@ -710,7 +868,7 @@ const SellerDetails = () => {
                     </div>
                   </div>
                 </div>
-                
+
                 {filteredProducts.length > 0 ? (
                   <div className="space-y-6">
                     {/* Résumé du filtre actuel */}
@@ -741,11 +899,10 @@ const SellerDetails = () => {
                       {filteredProducts.map((product) => {
                         const statusInfo = getProductStatusInfo(product);
                         const isDeleted = product.isDeleted;
-                        
+
                         return (
-                          <div key={product._id} className={`border rounded-lg overflow-hidden hover:shadow-md transition-shadow ${
-                            isDeleted ? 'border-red-200 bg-red-50' : 'border-gray-200 bg-white'
-                          }`}>
+                          <div key={product._id} className={`border rounded-lg overflow-hidden hover:shadow-md transition-shadow ${isDeleted ? 'border-red-200 bg-red-50' : 'border-gray-200 bg-white'
+                            }`}>
                             <div className="relative">
                               <img
                                 src={product.image1 || 'https://via.placeholder.com/400x300/E5E7EB/6B7280?text=Produit'}
@@ -755,7 +912,7 @@ const SellerDetails = () => {
                                   e.target.src = 'https://via.placeholder.com/400x300/E5E7EB/6B7280?text=Produit';
                                 }}
                               />
-                              
+
                               {/* Étiquettes de statut */}
                               <div className="absolute top-2 left-2 space-y-1">
                                 {isDeleted && (
@@ -771,7 +928,7 @@ const SellerDetails = () => {
                                   </span>
                                 )}
                               </div>
-                              
+
                               {/* Indicateur stock faible */}
                               {!isDeleted && (product.quantite || 0) < 5 && (
                                 <div className="absolute top-2 right-2">
@@ -782,12 +939,12 @@ const SellerDetails = () => {
                                 </div>
                               )}
                             </div>
-                            
+
                             <div className="p-4">
                               <h4 className={`font-semibold mb-2 truncate ${isDeleted ? 'text-gray-500' : 'text-gray-900'}`}>
                                 {product.name}
                               </h4>
-                              
+
                               <div className="space-y-1 text-sm text-gray-600 mb-4">
                                 <div className="flex justify-between">
                                   <span>Prix:</span>
@@ -797,11 +954,10 @@ const SellerDetails = () => {
                                 </div>
                                 <div className="flex justify-between">
                                   <span>Stock:</span>
-                                  <span className={`font-medium ${
-                                    isDeleted ? 'text-gray-500' : 
-                                    (product.quantite || 0) === 0 ? 'text-red-600' : 
-                                    (product.quantite || 0) < 5 ? 'text-orange-600' : 'text-gray-900'
-                                  }`}>
+                                  <span className={`font-medium ${isDeleted ? 'text-gray-500' :
+                                    (product.quantite || 0) === 0 ? 'text-red-600' :
+                                      (product.quantite || 0) < 5 ? 'text-orange-600' : 'text-gray-900'
+                                    }`}>
                                     {product.quantite || 0} pcs
                                   </span>
                                 </div>
@@ -813,10 +969,9 @@ const SellerDetails = () => {
                                 </div>
                                 <div className="flex justify-between">
                                   <span>Validation:</span>
-                                  <span className={`font-medium ${
-                                    isDeleted ? 'text-gray-500' : 
+                                  <span className={`font-medium ${isDeleted ? 'text-gray-500' :
                                     product.isValidated ? 'text-green-600' : 'text-red-600'
-                                  }`}>
+                                    }`}>
                                     {product.isValidated ? 'Validé' : 'Non validé'}
                                   </span>
                                 </div>
@@ -827,7 +982,7 @@ const SellerDetails = () => {
                                   </div>
                                 )}
                               </div>
-                              
+
                               <div className="flex space-x-2">
                                 <button
                                   onClick={() => navigate(`/Admin/ProductDet/${product._id}`)}
@@ -836,7 +991,7 @@ const SellerDetails = () => {
                                   <Eye className="w-4 h-4" />
                                   <span>Voir</span>
                                 </button>
-                                
+
                                 {!isDeleted ? (
                                   <>
                                     <button
@@ -846,7 +1001,7 @@ const SellerDetails = () => {
                                       <Settings className="w-4 h-4" />
                                       <span>Gérer</span>
                                     </button>
-                                    <button 
+                                    <button
                                       onClick={() => handleDeleteProduct(product._id)}
                                       className="flex items-center justify-center px-3 py-2 bg-red-50 text-red-700 rounded-md hover:bg-red-100 transition-colors"
                                     >
@@ -854,7 +1009,7 @@ const SellerDetails = () => {
                                     </button>
                                   </>
                                 ) : (
-                                  <button 
+                                  <button
                                     onClick={() => handleRestoreProduct(product._id)}
                                     className="flex items-center justify-center space-x-1 px-3 py-2 bg-green-50 text-green-700 rounded-md hover:bg-green-100 transition-colors"
                                     title="Restaurer le produit"
@@ -874,13 +1029,13 @@ const SellerDetails = () => {
                   <div className="text-center py-12">
                     <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                     <h3 className="text-lg font-medium text-gray-900 mb-2">
-                      {productFilter === "active" 
+                      {productFilter === "active"
                         ? (productError || 'Aucun produit actif')
                         : `Aucun produit ${getFilterLabel()}`
                       }
                     </h3>
                     <p className="text-gray-500 mb-4">
-                      {productFilter === "active" 
+                      {productFilter === "active"
                         ? (productError || 'Ce fournisseur n\'a pas encore ajouté de produits.')
                         : `Aucun produit ne correspond au filtre "${getFilterLabel()}".`
                       }
@@ -929,7 +1084,7 @@ const SellerDetails = () => {
                         </div>
                       )}
                     </div>
-                    
+
                     <div className="space-y-4">
                       <div className="flex items-center space-x-3">
                         <Mail className="w-5 h-5 text-gray-400" />
@@ -1034,20 +1189,64 @@ const SellerDetails = () => {
             {activeTab === 'documents' && (
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-6">Documents et Pièces d'Identité</h3>
-                
+
                 {seller.ownerIdentity ? (
-                  <div className="bg-gray-50 rounded-lg p-6">
+                  <div className="bg-gray-50 rounded-lg p-6 space-y-4">
                     <div className="flex items-center justify-between mb-4">
-                      <h4 className="font-medium text-gray-900">Pièce d'Identité du Propriétaire</h4>
-                      <Badge className="w-5 h-5 text-green-500" />
+                      <div>
+                        <h4 className="font-medium text-gray-900">Pièce d'Identité du Propriétaire</h4>
+                        <p className="text-sm text-gray-500 mt-1">
+                          Aperçu du document soumis par le vendeur.
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="inline-flex items-center rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-700">
+                          {isOwnerIdentityPdf ? "PDF" : isOwnerIdentityImage ? "Image" : "Document"}
+                        </span>
+                        <CheckCircle className="w-5 h-5 text-green-500" />
+                      </div>
                     </div>
-                    <div className="border border-gray-200 rounded-lg overflow-hidden">
-                      <img
-                        src={seller.ownerIdentity}
-                        alt="Pièce d'identité"
-                        className="w-full h-auto max-h-96 object-contain bg-white"
-                      />
-                    </div>
+
+                    {isOwnerIdentityImage && (
+                      <div className="border border-gray-200 rounded-lg overflow-hidden bg-white">
+                        <img
+                          src={seller.ownerIdentity}
+                          alt="Pièce d'identité"
+                          className="w-full h-auto max-h-96 object-contain bg-white"
+                        />
+                      </div>
+                    )}
+
+                    {isOwnerIdentityPdf && (
+                      <div className="border border-gray-200 rounded-lg overflow-hidden bg-white">
+                        <object
+                          data={seller.ownerIdentity}
+                          type="application/pdf"
+                          className="w-full h-[620px]"
+                        >
+                          <div className="flex h-[320px] items-center justify-center bg-gray-100 p-4 text-center text-sm text-gray-600">
+                            L'aperçu PDF n'est pas disponible dans ce navigateur.
+                          </div>
+                        </object>
+                      </div>
+                    )}
+
+                    {!isOwnerIdentityImage && !isOwnerIdentityPdf && (
+                      <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+                        Aperçu indisponible pour ce format de document.
+                      </div>
+                    )}
+
+                    <a
+                      href={seller.ownerIdentity}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-2 rounded-md border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                      Ouvrir le document dans un nouvel onglet
+                    </a>
+
                     <p className="text-sm text-gray-500 mt-3">
                       Document vérifié et validé par l'administration
                     </p>
@@ -1068,7 +1267,7 @@ const SellerDetails = () => {
       {/* Modal de Validation */}
       {showValidateModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full">
+          <div className="seller-modal bg-white rounded-lg p-6 max-w-md w-full">
             <div className="flex items-center space-x-3 mb-4">
               {seller.isvalid ? (
                 <XCircle className="w-6 h-6 text-red-500" />
@@ -1076,31 +1275,52 @@ const SellerDetails = () => {
                 <CheckCircle className="w-6 h-6 text-green-500" />
               )}
               <h3 className="text-lg font-semibold text-gray-900">
-                {seller.isvalid ? 'Désactiver le Fournisseur' : 'Valider le Fournisseur'}
+                {seller.isvalid ? 'Suspendre le Fournisseur' : 'Valider le Fournisseur'}
               </h3>
             </div>
-            <p className="text-gray-600 mb-6">
-              {seller.isvalid 
-                ? 'Êtes-vous sûr de vouloir désactiver ce fournisseur ? Il ne pourra plus vendre sur la plateforme.'
+
+            <p className="text-gray-600 mb-4">
+              {seller.isvalid
+                ? 'Pourquoi suspendez-vous ce fournisseur ?'
                 : 'Êtes-vous sûr de vouloir valider ce fournisseur ? Il pourra alors vendre sur la plateforme.'
               }
             </p>
+
+            {/* Champ de message de suspension - affiché seulement lors de la suspension */}
+            {seller.isvalid && (
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Raison de la suspension *
+                </label>
+                <textarea
+                  value={suspensionMessage}
+                  onChange={(e) => setSuspensionMessage(e.target.value)}
+                  placeholder="Expliquez la raison de la suspension..."
+                  className="w-full p-3 border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                  rows="4"
+                  required
+                />
+              </div>
+            )}
+
             <div className="flex space-x-3">
               <button
-                onClick={() => setShowValidateModal(false)}
+                onClick={() => {
+                  setShowValidateModal(false);
+                  setSuspensionMessage(''); // Reset du message à la fermeture
+                }}
                 className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
               >
                 Annuler
               </button>
               <button
                 onClick={validateSeller}
-                className={`flex-1 px-4 py-2 rounded-md transition-colors ${
-                  seller.isvalid
+                className={`flex-1 px-4 py-2 rounded-md transition-colors ${seller.isvalid
                     ? 'bg-red-600 text-white hover:bg-red-700'
                     : 'bg-green-600 text-white hover:bg-green-700'
-                }`}
+                  }`}
               >
-                {seller.isvalid ? 'Désactiver' : 'Valider'}
+                {seller.isvalid ? 'Suspendre' : 'Valider'}
               </button>
             </div>
           </div>

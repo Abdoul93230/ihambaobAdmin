@@ -102,111 +102,40 @@ const useDebounce = (value, delay) => {
 };
 
 export default function Products() {
-  // États
   const [products, setProducts] = useState([]);
-  const [allProducts, setAllProducts] = useState([]); // Cache pour éviter les appels API répétés
   const [types, setTypes] = useState([]);
   const [searchName, setSearchName] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [perPage, setPerPage] = useState(12);
   const [totalPages, setTotalPages] = useState(0);
+  const [totalProducts, setTotalProducts] = useState(0);
   const [selectedType, setSelectedType] = useState("All");
   const [selectedStatus, setSelectedStatus] = useState("All");
   const [sortBy, setSortBy] = useState("date_desc");
-  const [viewMode, setViewMode] = useState("grid"); // grid ou list
+  const [viewMode, setViewMode] = useState("grid");
   const [isLoading, setIsLoading] = useState(true);
   const [isSearching, setIsSearching] = useState(false);
-  
+
   const { toast } = useToast();
   const searchInputRef = useRef(null);
-  
-  // Debounce pour la recherche
-  const debouncedSearch = useDebounce(searchName, 300);
+  const debouncedSearch = useDebounce(searchName, 400);
 
-  // Mémoisation des produits filtrés et triés
-  const filteredAndSortedProducts = useMemo(() => {
-    let filtered = [...allProducts];
+  // Products come from the server — no client-side filtering needed
+  const paginatedProducts = products;
+  const filteredAndSortedProducts = { length: totalProducts };
 
-    // Filtrage par recherche
-    if (debouncedSearch.length >= 2) {
-      filtered = filtered.filter(product =>
-        product.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-        stripHtml(product.description).toLowerCase().includes(debouncedSearch.toLowerCase())
-      );
-    }
-
-    // Filtrage par type
-    if (selectedType !== "All") {
-      filtered = filtered.filter(product => product.type === selectedType);
-    }
-
-    // Filtrage par statut
-    if (selectedStatus !== "All") {
-      filtered = filtered.filter(product => product.isPublished === selectedStatus);
-    }
-
-    // Tri
-    filtered.sort((a, b) => {
-      switch (sortBy) {
-        case "name_asc":
-          return a.name.localeCompare(b.name);
-        case "name_desc":
-          return b.name.localeCompare(a.name);
-        case "price_asc":
-          return a.prix - b.prix;
-        case "price_desc":
-          return b.prix - a.prix;
-        case "date_asc":
-          return new Date(a.createdAt || 0) - new Date(b.createdAt || 0);
-        case "date_desc":
-          return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
-        default:
-          return 0;
-      }
-    });
-
-    return filtered;
-  }, [allProducts, debouncedSearch, selectedType, selectedStatus, sortBy]);
-
-  // Calcul de la pagination
-  const paginatedProducts = useMemo(() => {
-    const startIndex = (currentPage - 1) * perPage;
-    return filteredAndSortedProducts.slice(startIndex, startIndex + perPage);
-  }, [filteredAndSortedProducts, currentPage, perPage]);
-
-  // Mise à jour du nombre total de pages
-  useEffect(() => {
-    setTotalPages(Math.ceil(filteredAndSortedProducts.length / perPage));
-    setCurrentPage(1); // Reset à la première page lors du changement de filtres
-  }, [filteredAndSortedProducts.length, perPage]);
-
-  // Chargement initial des données
-  useEffect(() => {
-    fetchInitialData();
-  }, []);
-
-  // Effet pour la recherche automatique
-  useEffect(() => {
-    if (debouncedSearch.length >= 2) {
-      setIsSearching(true);
-      // La recherche se fait via le useMemo, pas besoin d'appel API
-      setTimeout(() => setIsSearching(false), 100);
-    } else if (debouncedSearch.length === 0) {
-      setIsSearching(false);
-    }
-  }, [debouncedSearch]);
-
-  const fetchInitialData = useCallback(async () => {
+  const fetchProducts = useCallback(async (page = 1) => {
     setIsLoading(true);
     try {
-      const [productsRes, typesRes] = await Promise.all([
-        axios.get(`${BackendUrl}/ProductsAdmin`),
-        axios.get(`${BackendUrl}/getAllType/`),
-      ]);
+      const params = new URLSearchParams({ page, limit: perPage });
+      if (debouncedSearch.length >= 2) params.set('search', debouncedSearch);
+      if (selectedStatus !== 'All') params.set('status', selectedStatus);
+      if (selectedType !== 'All') params.set('type', selectedType);
 
-      setAllProducts(productsRes.data.data);
-      setProducts(productsRes.data.data);
-      setTypes(typesRes.data.data);
+      const res = await axios.get(`${BackendUrl}/ProductsAdmin?${params}`);
+      setProducts(res.data.products ?? res.data.data ?? []);
+      setTotalProducts(res.data.total ?? 0);
+      setTotalPages(res.data.pages ?? 1);
     } catch (error) {
       toast({
         variant: "destructive",
@@ -215,8 +144,22 @@ export default function Products() {
       });
     } finally {
       setIsLoading(false);
+      setIsSearching(false);
     }
-  }, [BackendUrl, toast]);
+  }, [BackendUrl, debouncedSearch, selectedStatus, selectedType, perPage, toast]);
+
+  // Load types once
+  useEffect(() => {
+    axios.get(`${BackendUrl}/getAllType/`)
+      .then(res => setTypes(res.data.data ?? []))
+      .catch(() => {});
+  }, [BackendUrl]);
+
+  // Reload when filters / page change
+  useEffect(() => {
+    if (debouncedSearch.length >= 2) setIsSearching(true);
+    fetchProducts(currentPage);
+  }, [debouncedSearch, selectedStatus, selectedType, perPage, currentPage]);
 
   const handleReset = useCallback(() => {
     setSearchName("");
@@ -224,9 +167,7 @@ export default function Products() {
     setSelectedStatus("All");
     setSortBy("date_desc");
     setCurrentPage(1);
-    if (searchInputRef.current) {
-      searchInputRef.current.focus();
-    }
+    if (searchInputRef.current) searchInputRef.current.focus();
   }, []);
 
   const getStatusConfig = (status) => {
@@ -401,7 +342,7 @@ export default function Products() {
                   Gestion des Produits
                 </h1>
                 <p className="text-muted-foreground mt-1">
-                  {filteredAndSortedProducts.length} produit{filteredAndSortedProducts.length !== 1 ? 's' : ''} trouvé{filteredAndSortedProducts.length !== 1 ? 's' : ''}
+                  {totalProducts} produit{totalProducts !== 1 ? 's' : ''} trouvé{totalProducts !== 1 ? 's' : ''}
                 </p>
               </div>
             </div>
@@ -553,7 +494,7 @@ export default function Products() {
               <ProductSkeleton key={index} />
             ))}
           </div>
-        ) : filteredAndSortedProducts.length === 0 ? (
+        ) : totalProducts === 0 ? (
           <div className="text-center py-16">
             <AlertCircle className="mx-auto h-16 w-16 text-gray-400 mb-4" />
             <h3 className="text-lg font-semibold text-gray-600 mb-2">Aucun produit trouvé</h3>
@@ -586,7 +527,7 @@ export default function Products() {
             {totalPages > 1 && (
               <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-8 p-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm border">
                 <div className="text-sm text-muted-foreground">
-                  Affichage de {((currentPage - 1) * perPage) + 1} à {Math.min(currentPage * perPage, filteredAndSortedProducts.length)} sur {filteredAndSortedProducts.length} produits
+                  Affichage de {((currentPage - 1) * perPage) + 1} à {Math.min(currentPage * perPage, totalProducts)} sur {totalProducts} produits
                 </div>
                 
                 <Pagination>

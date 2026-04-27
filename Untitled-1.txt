@@ -1,0 +1,143 @@
+🌳 IHAMBABOAB – SYSTÈME DE GAMIFICATION & FIDÉLISATION (VERSION FINALE)
+🎯 Objectifs
+
+Augmenter la rétention
+
+Encourager les achats répétés
+
+Créer une croissance virale saine
+
+Garder une économie soutenable
+
+1️⃣ Le système de points (Baobab Points 🌿)
+🔹 Règle de base
+
+1 000 FCFA dépensés = 2 Baobab Points
+
+Les points sont attribués uniquement après validation de la commande
+
+💬 “Gagne jusqu’à 4 % de cashback sur toutes tes commandes”
+
+🔹 Valeur des points
+
+100 points = 2 000 FCFA
+
+Utilisables uniquement sur ihambaobab
+
+❌ Non convertibles en argent
+
+⏳ Expiration : 12 mois
+
+🔹 Utilisation des points
+
+Maximum 30 % du montant d’une commande
+
+Utilisables pour :
+
+réductions produits
+
+frais de livraison
+
+offres spéciales
+
+2️⃣ Programme de parrainage intelligent 🤝
+🔹 Conditions
+
+Un parrainage est validé uniquement si :
+
+le filleul s’inscrit via un lien unique (ou un mecanisme qui permet de savoir que la personne s'es inscrit par le biellet de la personne qui la parainer)
+
+ET passe sa première commande
+
+🔹 Récompenses
+
+1 parrainage validé = 5 points
+
+Bonus :
+
+🎁 +10 points après 5 parrainages validés
+
+🎁 +30 points après 20 parrainages
+
+🔹 Limites anti-abus
+
+Un compte = un numéro + un appareil
+
+Les points parrainage :
+
+utilisables jusqu’à 20 % d’une commande
+
+expirent en 6 mois
+
+3️⃣ Niveaux utilisateurs (Gamification avancée 🎮)
+🟤 Explorateur (0 – 199 pts)
+
+Accès aux points standards
+
+🟢 Ambassadeur (200 – 499 pts)
+
++10 % de points sur chaque commande
+
+accès à des ventes flash
+
+🔵 VIP Baobab (500+ pts)
+
++20 % de points sur chaque commande
+
+offres exclusives
+
+support prioritaire
+
+badge visible sur le profil
+
+4️⃣ Missions & Défis (engagement émotionnel)
+🎯 Missions permanentes
+
+🎉 Première commande → +10 pts
+
+🛍️ 3 commandes dans le mois → +15 pts
+
+⭐ Laisser un avis vérifié → +5 pts
+
+🔄 Acheter chez 3 vendeurs différents → +10 pts
+
+🎯 Missions saisonnières
+
+Ramadan, fêtes, fin d’année
+
+Double points pendant 48h
+
+Défis communautaires
+
+5️⃣ Règles financières (protection de la plateforme)
+
+✔️ Les points ne sont pas cumulables avec certaines promos
+✔️ Les vendeurs ne supportent aucune perte directe
+✔️ Les bonus sont financés par :
+
+commission plateforme
+
+budget marketing
+
+partenariats vendeurs
+
+6️⃣ Message simple pour les utilisateurs (UX copy)
+
+💚 Achetez, gagnez, recommencez
+
+Chaque commande sur ihambaobab vous fait gagner des Baobab Points.
+Invitez vos proches, relevez des défis et utilisez vos points pour payer moins cher vos prochaines commandes.
+
+7️⃣ Pourquoi ce modèle est fort 💎
+
+💰 Coût maîtrisé (≈ 4 % max)
+
+🔒 Anti-fraude
+
+❤️ Engage émotionnellement
+
+📈 Favorise la croissance organique
+
+🧱 Facile à implémenter techniquement
+
+et surtout aussi que je veut soumetre ca a une etude de marcher et evaluation au pres des quelqu'uns

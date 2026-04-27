@@ -1,94 +1,375 @@
-.AdminConnection{
-    width: 100%;
-    height: auto;
-    padding: 10px 20px;
-    padding-top: 130px;
+/* AdminConnection.css */
+.AdminConnection {
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 2rem;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.18);
 }
 
-.AdminConnection ul{
-    width: 100%;
-    height: auto;
-    display: flex;
-    justify-content: space-between;
+.connection-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.connection-header h2 {
+  color: #2d3748;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.connection-header p {
+  color: #718096;
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.AdminConnection form {
+  width: 100%;
+}
+
+.AdminConnection ul {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1.5rem 0;
+}
+
+.AdminConnection li {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.AdminConnection li.error {
+  animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+.AdminConnection .left {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 8px;
+  margin-right: 1rem;
+  flex-shrink: 0;
+}
+
+.AdminConnection .left svg {
+  color: white;
+  width: 18px;
+  height: 18px;
+}
+
+.AdminConnection .right {
+  flex: 1;
+}
+
+.AdminConnection .right label {
+  display: block;
+  font-weight: 500;
+  color: #4a5568;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.AdminConnection .right input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: #ffffff;
+}
+
+.AdminConnection .right input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.AdminConnection .right input:disabled {
+  background-color: #f7fafc;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.AdminConnection li.error .right input {
+  border-color: #e53e3e;
+}
+
+.AdminConnection li.error .right input:focus {
+  border-color: #e53e3e;
+  box-shadow: 0 0 0 3px rgba(229, 62, 62, 0.1);
+}
+
+/* Password input wrapper */
+.password-input-wrapper {
+  position: relative;
+}
+
+.password-input-wrapper input {
+  padding-right: 3rem;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #718096;
+  transition: color 0.2s ease;
+  padding: 0.25rem;
+  border-radius: 4px;
+}
+
+.password-toggle:hover {
+  color: #4a5568;
+  background-color: #f7fafc;
+}
+
+.password-toggle:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* Error messages */
+.error-message {
+  display: flex;
+  align-items: center;
+  color: #e53e3e;
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.error-message svg {
+  margin-right: 0.25rem;
+  flex-shrink: 0;
+}
+
+/* Connection options */
+.connection-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.remember-me {
+  display: flex;
+  align-items: center;
+  font-size: 0.875rem;
+  color: #4a5568;
+  cursor: pointer;
+}
+
+.remember-me input[type="checkbox"] {
+  margin-right: 0.5rem;
+  width: auto;
+}
+
+.forgot-password {
+  background: none;
+  border: none;
+  color: #667eea;
+  font-size: 0.875rem;
+  cursor: pointer;
+  text-decoration: underline;
+  transition: color 0.2s ease;
+}
+
+.forgot-password:hover {
+  color: #5a67d8;
+}
+
+.forgot-password:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* Login button */
+.login-button {
+  width: 100%;
+  padding: 0.875rem 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.login-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+.login-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.login-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.login-button.loading {
+  color: transparent;
+}
+
+.login-button span {
+  margin-left: 0.5rem;
+  display: flex;
+  align-items: center;
+}
+
+/* Spinner */
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid transparent;
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+@keyframes spin {
+  0% { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Connection footer */
+.connection-footer {
+  text-align: center;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.connection-footer p {
+  color: #718096;
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.connection-footer .link {
+  color: #667eea;
+  cursor: pointer;
+  text-decoration: underline;
+  transition: color 0.2s ease;
+}
+
+.connection-footer .link:hover {
+  color: #5a67d8;
+}
+
+/* Loading state for auth context */
+.auth-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  color: #4a5568;
+}
+
+.loading-spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid #e2e8f0;
+  border-top: 4px solid #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+/* Responsive design */
+@media (max-width: 480px) {
+  .AdminConnection {
+    margin: 1rem;
+    padding: 1.5rem;
+  }
+  
+  .connection-options {
     flex-direction: column;
-    align-items: center;
-    background-color: white;
-    border-radius: 10px;
-}
-
-.AdminConnection ul li{
-    display: flex;
-    width: 100%;
-    list-style: none;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px;
-}
-
-.AdminConnection ul li .left{
-    color: #515C6F;
-    
-}
-.AdminConnection ul li .right{
-    display: flex;
-    flex-direction: column;
+    gap: 0.75rem;
     align-items: flex-start;
-    width: 83%;
-    color: #515C6F;
+  }
+  
+  .AdminConnection li {
+    flex-direction: column;
+  }
+  
+  .AdminConnection .left {
+    margin-bottom: 0.5rem;
+    margin-right: 0;
+  }
 }
 
-.AdminConnection ul li .right label{
-    font-size: 18px;
-    font-weight: lighter;
-    text-transform: uppercase;
-}
-
-.AdminConnection ul li .right input{
-    width: 100%;
-    padding: 5px 5px;
-    outline: none;
-    border: none;
-    border-bottom: 1px solid #515C6F;
-    
-}
-
-.AdminConnection button{
-    width: 95%;
-    margin: 18px auto;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 10px;
-    background-color: #FF6969;
-    border: none;
-    border-radius: 26px;
-    position: relative;
-    text-transform: uppercase;
-    font-weight: bold;
-    color: white;
-}
-
-.AdminConnection button span{
-    position: absolute;
-    right: 2%;
-    bottom: 2px;
-    background-color: white;
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    color: #FF6969;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-}
-.AdminConnection p{
-    color: #515C6F;
-    width: 70%;
-    margin: 15px auto;
-    font-size: 13px;
-}
-.AdminConnection p span{
-    color: #FF6969;
-    cursor: pointer;
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .AdminConnection {
+    background: #2d3748;
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  .connection-header h2 {
+    color: #f7fafc;
+  }
+  
+  .connection-header p {
+    color: #a0aec0;
+  }
+  
+  .AdminConnection .right label {
+    color: #e2e8f0;
+  }
+  
+  .AdminConnection .right input {
+    background: #4a5568;
+    border-color: #718096;
+    color: #f7fafc;
+  }
+  
+  .AdminConnection .right input:focus {
+    border-color: #667eea;
+  }
+  
+  .remember-me {
+    color: #e2e8f0;
+  }
+  
+  .connection-footer p {
+    color: #a0aec0;
+  }
+  
+  .connection-footer {
+    border-top-color: #4a5568;
+  }
 }
