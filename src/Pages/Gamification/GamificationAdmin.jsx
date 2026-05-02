@@ -277,6 +277,7 @@ export default function GamificationAdmin() {
     REFERRAL_PARRAIN: "Parrainage (parrain)", REFERRAL_FILLEUL: "Parrainage (filleul)",
     REDEMPTION: "Utilisation", EXPIRY: "Expiration",
     ADMIN_CREDIT: "Crédit admin", ADMIN_DEBIT: "Débit admin", CANCELLATION: "Annulation",
+    REFUND: "Restitution commande annulée",
   };
 
   // ── Events state ──

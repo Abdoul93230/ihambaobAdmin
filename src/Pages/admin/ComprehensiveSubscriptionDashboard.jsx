@@ -8,6 +8,7 @@ import {
   Edit, Trash2, ArrowUpRight, User, Building, Plus, Send,
   CreditCard, XCircle, Loader, MapPin, ChevronUp
 } from 'lucide-react';
+import SUBSCRIPTION_CONFIG from '../../config/subscriptionConfig';
 
 const ComprehensiveSubscriptionDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -50,9 +51,9 @@ const ComprehensiveSubscriptionDashboard = () => {
   const baseURL = process.env.REACT_APP_Backend_Url;
 
   const planPricing = {
-    Starter: { monthly: 2500, annual: 27000 },
-    Pro: { monthly: 4500, annual: 48600 },
-    Business: { monthly: 9000, annual: 97200 }
+    Starter: { monthly: SUBSCRIPTION_CONFIG.PLANS.Starter.pricing.monthly, annual: SUBSCRIPTION_CONFIG.PLANS.Starter.pricing.annual },
+    Pro:     { monthly: SUBSCRIPTION_CONFIG.PLANS.Pro.pricing.monthly,     annual: SUBSCRIPTION_CONFIG.PLANS.Pro.pricing.annual },
+    Business:{ monthly: SUBSCRIPTION_CONFIG.PLANS.Business.pricing.monthly,annual: SUBSCRIPTION_CONFIG.PLANS.Business.pricing.annual },
   };
 
   useEffect(() => {

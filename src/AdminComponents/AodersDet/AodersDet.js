@@ -65,6 +65,7 @@ const OrderDetails = ({ allProducts, allCategories }) => {
             axios.get(`${BackendUrl}/getUsers`),
             axios.get(`${BackendUrl}/getAllAddressByUser`),
           ]);
+          console.log({orderRes})
 
         const order = orderRes.data.commande;
         if (order.codePro) {
@@ -158,11 +159,9 @@ const OrderDetails = ({ allProducts, allCategories }) => {
     return order?.prod?.find((p) => String(p._id) === String(id)) || null;
   };
 
+  // Frais réels sauvegardés sur la commande (calculés depuis le client par boutique)
   const calculateTotalShippingCost = () => {
-    return order?.nbrProduits.reduce((total, item) => {
-      const product = getProductSnapshot(item);
-      return total + (product?.prixLivraison || 0) * item.quantite;
-    }, 0);
+    return order?.fraisLivraison || 0;
   };
 
   const handleValidateOrder = async () => {
@@ -651,11 +650,23 @@ const OrderDetails = ({ allProducts, allCategories }) => {
                 </TableHeader>
                 <TableBody>
                   {(() => {
+                    const seenStores = {};
                     return order?.nbrProduits.map((item, index) => {
                       const product = getProductSnapshot(item);
                       const supplier = product?.Clefournisseur;
                       const unitPrice = product?.prixPromo || product?.price || product?.prix || 0;
-                      const shippingCost = (product?.prixLivraison || 0);
+                      const storeId = String(supplier?._id || product?.createdBy || "unknown");
+                      const isFirstOfStore = !seenStores[storeId];
+                      seenStores[storeId] = true;
+                      const hasShippingByStore = order?.shippingByStore?.length > 0;
+                      const storeShipping = hasShippingByStore
+                        ? order.shippingByStore.find(s => String(s.storeId) === storeId)
+                        : null;
+                      // N'afficher que si shippingByStore existe (données fiables)
+                      // Pour les vieilles commandes sans shippingByStore : afficher —
+                      const shippingCost = (hasShippingByStore && isFirstOfStore && storeShipping)
+                        ? storeShipping.shippingCost
+                        : null;
 
                       return (
                         <TableRow key={index}>
@@ -749,7 +760,9 @@ const OrderDetails = ({ allProducts, allCategories }) => {
                             {formatPrice(unitPrice * item.quantite)}
                           </TableCell>
                           <TableCell className="text-right">
-                            {formatPrice(shippingCost)}
+                            {shippingCost !== null
+                              ? formatPrice(shippingCost)
+                              : <span className="text-gray-300">—</span>}
                           </TableCell>
                         </TableRow>
                       );
@@ -759,12 +772,19 @@ const OrderDetails = ({ allProducts, allCategories }) => {
                 </Table>
               </div>
             </div>
-            <div className="mt-4 bg-gray-50 p-4 rounded-lg">
-              <div className="flex justify-between items-center">
-                <span className="font-medium">Total frais de livraison</span>
-                <span className="font-bold">
-                  {formatPrice(calculateTotalShippingCost())}
-                </span>
+            <div className="mt-4 bg-gray-50 p-4 rounded-lg space-y-2">
+              {/* Ventilation par boutique depuis shippingByStore (source unique de vérité) */}
+              {order?.shippingByStore?.length > 1 &&
+                order.shippingByStore.map((entry, i) => (
+                  <div key={i} className="flex justify-between items-center text-sm text-gray-600">
+                    <span>🏪 {entry.storeName}</span>
+                    <span>{formatPrice(entry.shippingCost)}</span>
+                  </div>
+                ))
+              }
+              <div className="flex justify-between items-center font-medium pt-1 border-t border-gray-200">
+                <span>Total frais de livraison</span>
+                <span className="font-bold">{formatPrice(order?.fraisLivraison || 0)}</span>
               </div>
             </div>
 
@@ -776,6 +796,21 @@ const OrderDetails = ({ allProducts, allCategories }) => {
                     Code promo appliqué :{" "}
                     {formatPrice(promoCode.prixReduiction)} de réduction
                   </span>
+                </div>
+              </div>
+            )}
+
+            {order?.pointsDiscount > 0 && (
+              <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-amber-600">🌿</span>
+                    <span className="font-medium text-amber-800">Points Baobab utilisés</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="font-bold text-amber-800">-{formatPrice(order.pointsDiscount)}</span>
+                    <p className="text-xs text-amber-600">{order.pointsUsed || 0} pts déduits</p>
+                  </div>
                 </div>
               </div>
             )}

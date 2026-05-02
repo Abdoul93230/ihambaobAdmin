@@ -6,6 +6,7 @@ import {
   CheckCircle, XCircle, RefreshCw, Bell, Plus, Edit, Trash2,
   Send, Download, Filter, Users, Building, MapPin
 } from 'lucide-react';
+import SUBSCRIPTION_CONFIG from '../../config/subscriptionConfig';
 
 const AdminManualRenewal = () => {
   const [selectedSeller, setSelectedSeller] = useState(null);
@@ -30,9 +31,9 @@ const AdminManualRenewal = () => {
   const baseURL = process.env.REACT_APP_Backend_Url;
 
   const planPricing = {
-    Starter: { monthly: 2500, annual: 27000 },
-    Pro: { monthly: 4500, annual: 48600 },
-    Business: { monthly: 9000, annual: 97200 }
+    Starter: { monthly: SUBSCRIPTION_CONFIG.PLANS.Starter.pricing.monthly, annual: SUBSCRIPTION_CONFIG.PLANS.Starter.pricing.annual },
+    Pro:     { monthly: SUBSCRIPTION_CONFIG.PLANS.Pro.pricing.monthly,     annual: SUBSCRIPTION_CONFIG.PLANS.Pro.pricing.annual },
+    Business:{ monthly: SUBSCRIPTION_CONFIG.PLANS.Business.pricing.monthly,annual: SUBSCRIPTION_CONFIG.PLANS.Business.pricing.annual },
   };
 
   useEffect(() => {
