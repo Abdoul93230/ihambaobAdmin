@@ -36,6 +36,9 @@ const AdminFinancialDashboard = () => {
   const [retraits, setRetraits] = useState([]);
   const [sellers, setSellers] = useState([]);
   const [auditData, setAuditData] = useState(null);
+  const [posData, setPosData] = useState(null);
+  const [posVentes, setPosVentes] = useState([]);
+  const [posFilters, setPosFilters] = useState({ periode: 30, sellerId: '', statut: '', modePaiement: '' });
   const [loading, setLoading] = useState(false);
   const [selectedRetrait, setSelectedRetrait] = useState(null);
   const [showRetraitModal, setShowRetraitModal] = useState(false);
@@ -221,22 +224,34 @@ const AdminFinancialDashboard = () => {
     }
   };
 
+  const fetchPosData = async () => {
+    setLoading(true);
+    try {
+      const [dashRes, ventesRes] = await Promise.all([
+        fetch(`${baseURL}/adminf/pos/dashboard?periode=${posFilters.periode}`, {
+          headers: { 'Authorization': `Bearer ${admin.token}`, 'Content-Type': 'application/json' }
+        }),
+        fetch(`${baseURL}/adminf/pos/ventes?limit=50${posFilters.sellerId ? `&sellerId=${posFilters.sellerId}` : ''}${posFilters.statut ? `&statut=${posFilters.statut}` : ''}${posFilters.modePaiement ? `&modePaiement=${posFilters.modePaiement}` : ''}`, {
+          headers: { 'Authorization': `Bearer ${admin.token}`, 'Content-Type': 'application/json' }
+        }),
+      ]);
+      if (dashRes.ok) { const d = await dashRes.json(); setPosData(d.data); }
+      if (ventesRes.ok) { const d = await ventesRes.json(); setPosVentes(d.data.ventes); }
+    } catch (err) {
+      console.error('Erreur chargement POS admin:', err);
+    }
+    setLoading(false);
+  };
+
   useEffect(() => {
     switch (activeTab) {
-      case 'dashboard':
-        fetchDashboardData();
-        break;
-      case 'retraits':
-        fetchRetraits();
-        break;
-      case 'sellers':
-        fetchSellers();
-        break;
-      case 'audit':
-        fetchAuditData();
-        break;
+      case 'dashboard': fetchDashboardData(); break;
+      case 'retraits': fetchRetraits(); break;
+      case 'sellers': fetchSellers(); break;
+      case 'audit': fetchAuditData(); break;
+      case 'pos': fetchPosData(); break;
     }
-  }, [activeTab, filters]);
+  }, [activeTab, filters, posFilters]);
 
   const StatCard = ({ title, value, subtitle, icon: Icon, color = "blue", trend = null }) => (
     <div className={`bg-white p-6 rounded-lg shadow-md border-l-4 border-${color}-500`}>
@@ -1246,6 +1261,171 @@ const AdminFinancialDashboard = () => {
     </div>
   );
 
+  const renderPos = () => {
+    const fmt = (n) => new Intl.NumberFormat('fr-FR').format(n || 0) + ' FCFA';
+    const fmtDate = (d) => new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(d));
+    const PLAN_COLORS = { Starter: 'bg-gray-100 text-gray-700', Pro: 'bg-indigo-100 text-indigo-700', Business: 'bg-amber-100 text-amber-700' };
+    const MODE_LABELS = { ESPECES: '💵 Espèces', MOBILE_MONEY: '📱 Mobile Money', AUTRE: 'Autre' };
+
+    return (
+      <div className="space-y-6">
+        {/* Filtres */}
+        <div className="bg-white p-4 rounded-lg shadow-sm flex flex-wrap gap-3 items-center">
+          <select value={posFilters.periode} onChange={e => setPosFilters(f => ({ ...f, periode: Number(e.target.value) }))} className="border rounded-lg px-3 py-2 text-sm">
+            <option value={7}>7 jours</option>
+            <option value={30}>30 jours</option>
+            <option value={90}>90 jours</option>
+            <option value={365}>1 an</option>
+          </select>
+          <select value={posFilters.modePaiement} onChange={e => setPosFilters(f => ({ ...f, modePaiement: e.target.value }))} className="border rounded-lg px-3 py-2 text-sm">
+            <option value="">Tous modes</option>
+            <option value="ESPECES">Espèces</option>
+            <option value="MOBILE_MONEY">Mobile Money</option>
+          </select>
+          <select value={posFilters.statut} onChange={e => setPosFilters(f => ({ ...f, statut: e.target.value }))} className="border rounded-lg px-3 py-2 text-sm">
+            <option value="">Tous statuts</option>
+            <option value="COMPLETEE">Complétée</option>
+            <option value="ANNULEE">Annulée</option>
+          </select>
+          <button onClick={fetchPosData} className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 flex items-center gap-2 text-sm">
+            <RefreshCw className="w-4 h-4" /> Actualiser
+          </button>
+        </div>
+
+        {/* Rappel modèle SaaS — visible côté admin pour comprendre pourquoi les commissions POS sont à 0 */}
+        <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4 flex items-start gap-3">
+          <Info className="w-5 h-5 text-indigo-500 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-semibold text-indigo-900">Modèle SaaS — 0% commission sur les ventes physiques</p>
+            <p className="text-xs text-indigo-700 mt-1">
+              La caisse POS est réservée aux plans Pro &amp; Business. Le revenu plateforme sur ces ventes vient de
+              l'abonnement mensuel, pas d'une commission à la transaction. Les sellers gardent 100% de leurs ventes physiques.
+            </p>
+          </div>
+        </div>
+
+        {/* KPIs */}
+        {posData && (
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="bg-white p-5 rounded-lg shadow-sm border-l-4 border-emerald-500">
+              <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">CA Physique total</p>
+              <p className="text-2xl font-bold text-emerald-600 mt-1">{fmt(posData.kpis.totalCA)}</p>
+              <p className="text-xs text-gray-400 mt-1">{posData.kpis.nombreVentes} vente(s)</p>
+            </div>
+            <div className="bg-white p-5 rounded-lg shadow-sm border-l-4 border-amber-500">
+              <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Sellers actifs POS</p>
+              <p className="text-2xl font-bold text-amber-600 mt-1">{posData.parSeller.length}</p>
+              <p className="text-xs text-gray-400 mt-1">Plans Pro &amp; Business</p>
+            </div>
+            <div className="bg-white p-5 rounded-lg shadow-sm border-l-4 border-indigo-500">
+              <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Commission prélevée</p>
+              <p className="text-2xl font-bold text-indigo-600 mt-1">0 FCFA</p>
+              <p className="text-xs text-indigo-400 mt-1">Inclus dans l'abonnement</p>
+            </div>
+          </div>
+        )}
+
+        {/* Répartition mode paiement */}
+        {posData?.parModePaiement?.length > 0 && (
+          <div className="bg-white p-5 rounded-lg shadow-sm">
+            <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2"><BarChart3 className="w-4 h-4 text-gray-400" /> Répartition par mode de paiement</h3>
+            <div className="flex gap-4 flex-wrap">
+              {posData.parModePaiement.map(m => (
+                <div key={m._id} className="flex items-center gap-2 bg-gray-50 rounded-xl px-4 py-2">
+                  <span className="font-semibold text-sm text-gray-700">{MODE_LABELS[m._id] || m._id}</span>
+                  <span className="text-xs bg-white border border-gray-200 rounded-full px-2 py-0.5 font-bold text-gray-600">{m.count} ventes</span>
+                  <span className="text-xs text-emerald-600 font-bold">{fmt(m.totalCA)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Top Sellers POS */}
+        {posData?.parSeller?.length > 0 && (
+          <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+            <div className="px-5 py-4 border-b border-gray-100">
+              <h3 className="font-semibold text-gray-800 flex items-center gap-2"><TrendingUp className="w-4 h-4 text-gray-400" /> Top Sellers — Ventes physiques</h3>
+              <p className="text-xs text-gray-400 mt-0.5">Tous sur plan Pro ou Business · 0% commission sur ces ventes</p>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Boutique</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Plan</th>
+                    <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Ventes</th>
+                    <th className="text-right px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">CA physique</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {posData.parSeller.map(s => (
+                    <tr key={s._id} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-5 py-3 font-medium text-gray-800">{s.storeName}</td>
+                      <td className="px-4 py-3">
+                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${PLAN_COLORS[s.planName] || PLAN_COLORS.Starter}`}>{s.planName || 'Starter'}</span>
+                      </td>
+                      <td className="px-4 py-3 text-right text-gray-600">{s.nombreVentes}</td>
+                      <td className="px-5 py-3 text-right font-bold text-emerald-600">{fmt(s.totalCA)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Liste des dernières ventes */}
+        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+          <div className="px-5 py-4 border-b border-gray-100">
+            <h3 className="font-semibold text-gray-800 flex items-center gap-2"><ShoppingBag className="w-4 h-4 text-gray-400" /> Ventes directes récentes</h3>
+          </div>
+          {posVentes.length === 0 ? (
+            <div className="text-center py-12 text-gray-400">
+              <ShoppingBag className="w-10 h-10 mx-auto mb-2 opacity-30" />
+              <p className="text-sm">Aucune vente POS sur cette période</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Référence</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Boutique</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Mode</th>
+                    <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Total</th>
+                    <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Comm.</th>
+                    <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Statut</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {posVentes.map(v => (
+                    <tr key={v._id} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-5 py-3 font-mono text-xs text-gray-600">{v.reference}</td>
+                      <td className="px-4 py-3 font-medium text-gray-800">{v.storeName}</td>
+                      <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{fmtDate(v.createdAt)}</td>
+                      <td className="px-4 py-3 text-gray-600">{MODE_LABELS[v.modePaiement] || v.modePaiement}</td>
+                      <td className="px-4 py-3 text-right font-bold text-gray-800">{fmt(v.total)}</td>
+                      <td className="px-4 py-3 text-center">
+                        <span className="text-xs font-bold text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded-full">0%</span>
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${v.statut === 'COMPLETEE' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
+                          {v.statut === 'COMPLETEE' ? '✓ Complétée' : '✗ Annulée'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -1269,6 +1449,7 @@ const AdminFinancialDashboard = () => {
               { id: 'retraits', name: 'Retraits', icon: CreditCard },
               { id: 'sellers', name: 'Sellers', icon: Users },
               { id: 'commandes', name: 'Commandes', icon: ShoppingBag },
+              { id: 'pos', name: 'Ventes POS', icon: Activity },
               { id: 'audit', name: 'Audit', icon: AlertTriangle }
             ].map((tab) => {
               const Icon = tab.icon;
@@ -1304,6 +1485,7 @@ const AdminFinancialDashboard = () => {
             {activeTab === 'retraits' && renderRetraits()}
             {activeTab === 'sellers' && renderSellers()}
             {activeTab === 'commandes' && <FinancialManagementPage />}
+            {activeTab === 'pos' && renderPos()}
             {activeTab === 'audit' && renderAudit()}
           </>
         )}
