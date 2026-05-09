@@ -41,7 +41,11 @@ import {
   PieChart,
   Filter,
   RefreshCw,
-  Download
+  Download,
+  CheckSquare,
+  Square,
+  ChevronDown,
+  Loader2
 } from "lucide-react";
 
 const BackendUrl = process.env.REACT_APP_Backend_Url;
@@ -72,6 +76,10 @@ const SellerDetails = () => {
   const [loading, setLoading] = useState(true);
   const [productFilter, setProductFilter] = useState("active"); // Changé de "all" à "active"
   const [suspensionMessage, setSuspensionMessage] = useState('');
+  const [selectedProductIds, setSelectedProductIds] = useState(new Set());
+  const [isBulkValidating, setIsBulkValidating] = useState(false);
+  const [bulkComment, setBulkComment] = useState('');
+  const [showBulkPanel, setShowBulkPanel] = useState(false);
   const ownerIdentityExtension = getFileExtensionFromUrl(seller?.ownerIdentity);
   const isOwnerIdentityPdf = ownerIdentityExtension === "pdf";
   const isOwnerIdentityImage = IMAGE_EXTENSIONS.includes(ownerIdentityExtension);
@@ -326,6 +334,54 @@ const SellerDetails = () => {
 
   const filteredProducts = getFilteredProducts();
   const stats = calculateStats();
+
+  // Sélection en masse
+  const toggleSelectProduct = (id) => {
+    setSelectedProductIds(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedProductIds.size === filteredProducts.length) {
+      setSelectedProductIds(new Set());
+    } else {
+      setSelectedProductIds(new Set(filteredProducts.map(p => p._id)));
+    }
+  };
+
+  const handleBulkValidate = async (published) => {
+    if (selectedProductIds.size === 0) return;
+    setIsBulkValidating(true);
+    try {
+      const adminData = JSON.parse(localStorage.getItem('AdminEcomme') || '{}');
+      const token = adminData?.token || localStorage.getItem('AdminAuthToken');
+      await axios.put(
+        `${BackendUrl}/products/bulk-validate`,
+        {
+          productIds: Array.from(selectedProductIds),
+          published,
+          comments: bulkComment.trim() || undefined,
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      // Mettre à jour localement sans recharger
+      setProducts(prev => prev.map(p =>
+        selectedProductIds.has(p._id)
+          ? { ...p, isPublished: published, isValidated: published === "Published" }
+          : p
+      ));
+      setSelectedProductIds(new Set());
+      setBulkComment('');
+      setShowBulkPanel(false);
+    } catch (err) {
+      alert(err.response?.data?.message || "Erreur lors de la validation en masse");
+    } finally {
+      setIsBulkValidating(false);
+    }
+  };
 
   // Fonction de validation (votre code original)
   const validateSeller = async () => {
@@ -860,10 +916,14 @@ const SellerDetails = () => {
                         <span>Actualiser</span>
                       </button>
                       <button
-                        className="flex items-center space-x-1 px-3 py-2 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors"
+                        onClick={toggleSelectAll}
+                        className="flex items-center space-x-1 px-3 py-2 bg-indigo-100 text-indigo-700 rounded-md hover:bg-indigo-200 transition-colors"
                       >
-                        <Download className="w-4 h-4" />
-                        <span>Exporter</span>
+                        {selectedProductIds.size === filteredProducts.length && filteredProducts.length > 0
+                          ? <CheckSquare className="w-4 h-4" />
+                          : <Square className="w-4 h-4" />
+                        }
+                        <span>{selectedProductIds.size > 0 ? `${selectedProductIds.size} sélectionné(s)` : 'Tout sélectionner'}</span>
                       </button>
                     </div>
                   </div>
@@ -871,6 +931,77 @@ const SellerDetails = () => {
 
                 {filteredProducts.length > 0 ? (
                   <div className="space-y-6">
+                    {/* Barre d'action en masse */}
+                    {selectedProductIds.size > 0 && (
+                      <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4 space-y-3">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                          <span className="text-sm font-semibold text-indigo-800">
+                            {selectedProductIds.size} produit(s) sélectionné(s)
+                          </span>
+                          <div className="flex flex-wrap gap-2">
+                            <button
+                              onClick={() => handleBulkValidate("Published")}
+                              disabled={isBulkValidating}
+                              className="flex items-center space-x-1 px-3 py-1.5 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 disabled:opacity-50 transition-colors"
+                            >
+                              {isBulkValidating ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle className="w-3 h-3" />}
+                              <span>Publier</span>
+                            </button>
+                            <button
+                              onClick={() => handleBulkValidate("Attente")}
+                              disabled={isBulkValidating}
+                              className="flex items-center space-x-1 px-3 py-1.5 bg-yellow-500 text-white text-sm rounded-md hover:bg-yellow-600 disabled:opacity-50 transition-colors"
+                            >
+                              {isBulkValidating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Timer className="w-3 h-3" />}
+                              <span>Attente</span>
+                            </button>
+                            <button
+                              onClick={() => setShowBulkPanel(v => !v)}
+                              disabled={isBulkValidating}
+                              className="flex items-center space-x-1 px-3 py-1.5 bg-red-600 text-white text-sm rounded-md hover:bg-red-700 disabled:opacity-50 transition-colors"
+                            >
+                              <Ban className="w-3 h-3" />
+                              <span>Refuser</span>
+                              <ChevronDown className="w-3 h-3" />
+                            </button>
+                            <button
+                              onClick={() => handleBulkValidate("UnPublished")}
+                              disabled={isBulkValidating}
+                              className="flex items-center space-x-1 px-3 py-1.5 bg-gray-500 text-white text-sm rounded-md hover:bg-gray-600 disabled:opacity-50 transition-colors"
+                            >
+                              {isBulkValidating ? <Loader2 className="w-3 h-3 animate-spin" /> : <PackageX className="w-3 h-3" />}
+                              <span>Dépublier</span>
+                            </button>
+                            <button
+                              onClick={() => setSelectedProductIds(new Set())}
+                              className="px-3 py-1.5 border border-gray-300 text-gray-600 text-sm rounded-md hover:bg-gray-50 transition-colors"
+                            >
+                              Annuler
+                            </button>
+                          </div>
+                        </div>
+                        {showBulkPanel && (
+                          <div className="flex gap-2 pt-1 border-t border-indigo-200">
+                            <input
+                              type="text"
+                              value={bulkComment}
+                              onChange={e => setBulkComment(e.target.value)}
+                              placeholder="Raison du refus (optionnel)..."
+                              className="flex-1 px-3 py-1.5 text-sm border border-red-300 rounded-md focus:ring-2 focus:ring-red-400 focus:border-red-400"
+                            />
+                            <button
+                              onClick={() => handleBulkValidate("Refuser")}
+                              disabled={isBulkValidating}
+                              className="flex items-center space-x-1 px-4 py-1.5 bg-red-600 text-white text-sm rounded-md hover:bg-red-700 disabled:opacity-50 transition-colors"
+                            >
+                              {isBulkValidating ? <Loader2 className="w-3 h-3 animate-spin" /> : <XCircle className="w-3 h-3" />}
+                              <span>Confirmer le refus</span>
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
                     {/* Résumé du filtre actuel */}
                     {productFilter !== "active" && (
                       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -901,8 +1032,19 @@ const SellerDetails = () => {
                         const isDeleted = product.isDeleted;
 
                         return (
-                          <div key={product._id} className={`border rounded-lg overflow-hidden hover:shadow-md transition-shadow ${isDeleted ? 'border-red-200 bg-red-50' : 'border-gray-200 bg-white'
-                            }`}>
+                          <div key={product._id} className={`border rounded-lg overflow-hidden hover:shadow-md transition-shadow relative ${isDeleted ? 'border-red-200 bg-red-50' : selectedProductIds.has(product._id) ? 'border-indigo-400 ring-2 ring-indigo-200 bg-white' : 'border-gray-200 bg-white'}`}>
+                            {/* Checkbox sélection */}
+                            {!isDeleted && (
+                              <button
+                                onClick={() => toggleSelectProduct(product._id)}
+                                className="absolute top-2 right-2 z-10 p-1 rounded bg-white/80 backdrop-blur-sm shadow-sm hover:bg-white transition-colors"
+                              >
+                                {selectedProductIds.has(product._id)
+                                  ? <CheckSquare className="w-5 h-5 text-indigo-600" />
+                                  : <Square className="w-5 h-5 text-gray-400" />
+                                }
+                              </button>
+                            )}
                             <div className="relative">
                               <img
                                 src={product.image1 || 'https://via.placeholder.com/400x300/E5E7EB/6B7280?text=Produit'}
@@ -931,7 +1073,7 @@ const SellerDetails = () => {
 
                               {/* Indicateur stock faible */}
                               {!isDeleted && (product.quantite || 0) < 5 && (
-                                <div className="absolute top-2 right-2">
+                                <div className="absolute top-2 right-10">
                                   <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800 border border-orange-200">
                                     <AlertTriangle className="w-3 h-3 mr-1" />
                                     {(product.quantite || 0) === 0 ? 'Rupture' : 'Stock faible'}
