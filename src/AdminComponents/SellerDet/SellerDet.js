@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import api from "../../services/api";
 import "./SellerDet.css";
 import {
   ArrowLeft,
@@ -45,7 +46,8 @@ import {
   CheckSquare,
   Square,
   ChevronDown,
-  Loader2
+  Loader2,
+  Tag
 } from "lucide-react";
 
 const BackendUrl = process.env.REACT_APP_Backend_Url;
@@ -80,27 +82,97 @@ const SellerDetails = () => {
   const [isBulkValidating, setIsBulkValidating] = useState(false);
   const [bulkComment, setBulkComment] = useState('');
   const [showBulkPanel, setShowBulkPanel] = useState(false);
+  const [missingTypeCount, setMissingTypeCount] = useState(0);
+  const [allTypes, setAllTypes] = useState([]);
+  const [showFixTypeModal, setShowFixTypeModal] = useState(false);
+  const [fixTypeMap, setFixTypeMap] = useState({}); // { productId: typeId }
+  const [isFixingType, setIsFixingType] = useState(false);
+
+  // ── Modules & SMS Quota ──────────────────────────────────────────────────
+  const [sellerModules, setSellerModules] = useState(null);
+  const [modulesLoading, setModulesLoading] = useState(false);
+  const [modulesSaving, setModulesSaving] = useState(false);
+  const [modulesMsg, setModulesMsg] = useState(null);
+  const [smsQuotaInput, setSmsQuotaInput] = useState('');
+
+  const MODULE_LIST = [
+    { key: 'bilanJournalier',     label: 'Bilan Journalier',      desc: 'Chiffre d\'affaires du jour, semaine, mois' },
+    { key: 'alertesStock',        label: 'Alertes Stock',          desc: 'Notifications rupture et stock bas' },
+    { key: 'performanceProduits', label: 'Performance Produits',   desc: 'Top ventes, produits dormants' },
+    { key: 'carnetCreances',      label: 'Carnet de Créances',     desc: 'Gestion des dettes clients + rappels SMS' },
+    { key: 'rapportPeriodique',   label: 'Rapport Périodique',     desc: 'Rapport mensuel exportable' },
+  ];
+
+  const loadModules = async () => {
+    setModulesLoading(true);
+    try {
+      const res = await api.get(`/adminSeller/${params.id}/modules`);
+      const data = res.data || res;
+      setSellerModules(data.modules || {});
+      setSmsQuotaInput(String(data.smsQuota?.mensuel || 0));
+    } catch (e) {
+      console.error('loadModules', e);
+    } finally {
+      setModulesLoading(false);
+    }
+  };
+
+  const saveModules = async () => {
+    setModulesSaving(true);
+    setModulesMsg(null);
+    try {
+      await api.patch(`/adminSeller/${params.id}/modules`, {
+        modules: sellerModules,
+        smsQuota: { mensuel: Number(smsQuotaInput) || 0 },
+      });
+      setModulesMsg({ ok: true, text: 'Modifications enregistrées ✓' });
+    } catch (e) {
+      setModulesMsg({ ok: false, text: e.message || 'Erreur lors de la sauvegarde' });
+    } finally {
+      setModulesSaving(false);
+      setTimeout(() => setModulesMsg(null), 3000);
+    }
+  };
+
+  const resetSmsCounter = async () => {
+    if (!window.confirm('Remettre le compteur SMS à 0 ?')) return;
+    try {
+      await api.post(`/adminSeller/${params.id}/modules/reset-sms`);
+      await loadModules();
+      setModulesMsg({ ok: true, text: 'Compteur SMS remis à 0 ✓' });
+      setTimeout(() => setModulesMsg(null), 3000);
+    } catch (e) {
+      setModulesMsg({ ok: false, text: e.message });
+    }
+  };
+
   const ownerIdentityExtension = getFileExtensionFromUrl(seller?.ownerIdentity);
   const isOwnerIdentityPdf = ownerIdentityExtension === "pdf";
   const isOwnerIdentityImage = IMAGE_EXTENSIONS.includes(ownerIdentityExtension);
   const sellerSubscriptionStatus = String(seller?.subscriptionStatus || (seller?.isvalid ? "active" : "suspended")).toLowerCase();
   const hasSubscriptionReference = Boolean(seller?.subscriptionId);
-  const hasLinkedSubscription = ['active', 'trial'].includes(sellerSubscriptionStatus);
+  // Un abonnement est "lié" si le statut est actif/trial OU si le compte est suspendu
+  // administrativement mais dispose d'un subscriptionId valide (abonnement existant mais compte bloqué).
+  const hasLinkedSubscription = ['active', 'trial'].includes(sellerSubscriptionStatus)
+    || (sellerSubscriptionStatus === 'suspended' && hasSubscriptionReference);
+  const isSuspendedWithSubscription = sellerSubscriptionStatus === 'suspended' && hasSubscriptionReference;
   const canActivateSeller = !seller?.isvalid && hasLinkedSubscription;
   const sellerState = seller?.isvalid
     ? (hasLinkedSubscription ? "Compte actif" : "Actif sans abonnement")
-    : (hasLinkedSubscription ? "Prêt à activer" : "Activation bloquée");
+    : (hasLinkedSubscription ? (isSuspendedWithSubscription ? "Suspendu (abonnement lié)" : "Prêt à activer") : "Activation bloquée");
 
   const subscriptionTone = seller?.isvalid
     ? (hasLinkedSubscription ? "success" : "warning")
-    : (hasLinkedSubscription ? "info" : "danger");
+    : (isSuspendedWithSubscription ? "warning" : (hasLinkedSubscription ? "info" : "danger"));
 
   const subscriptionLabel = hasLinkedSubscription
-    ? (sellerSubscriptionStatus === "trial" ? "Essai actif" : "Abonnement valide")
+    ? (sellerSubscriptionStatus === "trial" ? "Essai actif" : isSuspendedWithSubscription ? "Abonnement lié (suspendu)" : "Abonnement valide")
     : (seller?.subscriptionId ? "Abonnement incohérent" : "Aucun abonnement lié");
 
   const subscriptionHelp = hasLinkedSubscription
-    ? `Plan ${sellerSubscriptionStatus}${seller?.subscriptionId ? " lié au compte" : ""}`
+    ? (isSuspendedWithSubscription
+      ? "Le compte est suspendu administrativement mais possède un abonnement lié. Validez pour réactiver."
+      : `Plan ${sellerSubscriptionStatus}${seller?.subscriptionId ? " lié au compte" : ""}`)
     : (seller?.subscriptionId
       ? "Le compte est actif côté interface mais aucun plan valide n\'est associé."
       : "Le backend bloquera toute activation tant qu\'aucun abonnement valide n\'est créé et lié.");
@@ -129,9 +201,17 @@ const SellerDetails = () => {
           }
         }
 
-        // Récupérer les catégories
-        const categoriesResponse = await axios.get(`${BackendUrl}/getAllType/`);
-        setCategories(categoriesResponse.data.data);
+        // Récupérer les types avec leur catégorie parente
+        const typesResponse = await axios.get(`${BackendUrl}/getAllTypeWithCategories`);
+        const allTypesData = typesResponse.data.data || [];
+        setCategories(allTypesData);
+        setAllTypes(allTypesData);
+
+        // Compter les produits sans type
+        try {
+          const missingRes = await axios.get(`${BackendUrl}/products/missing-type/${params.id}`);
+          setMissingTypeCount(missingRes.data.count || 0);
+        } catch (_) {}
 
       } catch (error) {
         console.log(error);
@@ -383,6 +463,37 @@ const SellerDetails = () => {
     }
   };
 
+  const handleFixType = async () => {
+    const updates = Object.entries(fixTypeMap)
+      .filter(([, typeId]) => !!typeId)
+      .map(([id, ClefType]) => ({ id, changes: { ClefType } }));
+
+    if (updates.length === 0) return;
+    setIsFixingType(true);
+    try {
+      const adminData = JSON.parse(localStorage.getItem('AdminEcomme') || '{}');
+      const token = adminData?.token || localStorage.getItem('AdminAuthToken');
+      await axios.put(
+        `${BackendUrl}/products/admin-bulk-update`,
+        { updates },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      // Mettre à jour localement
+      const map = fixTypeMap;
+      setProducts(prev => prev.map(p =>
+        map[p._id] ? { ...p, ClefType: map[p._id] } : p
+      ));
+      const remaining = missingTypeCount - updates.length;
+      setMissingTypeCount(Math.max(0, remaining));
+      setShowFixTypeModal(false);
+      setFixTypeMap({});
+    } catch (err) {
+      alert(err.response?.data?.message || "Erreur lors de la correction");
+    } finally {
+      setIsFixingType(false);
+    }
+  };
+
   // Fonction de validation (votre code original)
   const validateSeller = async () => {
     try {
@@ -413,8 +524,11 @@ const SellerDetails = () => {
       setSuspensionMessage(''); // Reset du message
     } catch (error) {
       console.log(error);
-      if (error.response?.status === 400) {
-        alert(error.response.data.message);
+      const msg = error.response?.data?.message || 'Erreur lors de l\'opération';
+      if (error.response?.status === 403 || error.response?.status === 400) {
+        alert(`⚠️ ${msg}`);
+      } else {
+        alert(`Erreur: ${msg}`);
       }
     }
   };
@@ -747,13 +861,17 @@ const SellerDetails = () => {
                 { id: 'overview', label: 'Aperçu', icon: User },
                 { id: 'products', label: `Produits (${stats.activeProducts})`, icon: Package },
                 { id: 'contact', label: 'Contact & Réseaux', icon: Mail },
-                { id: 'documents', label: 'Documents', icon: Badge }
+                { id: 'documents', label: 'Documents', icon: Badge },
+                { id: 'modules', label: 'Modules & SMS', icon: Settings },
               ].map((tab) => {
                 const Icon = tab.icon;
                 return (
                   <button
                     key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
+                    onClick={() => {
+                      setActiveTab(tab.id);
+                      if (tab.id === 'modules' && !sellerModules) loadModules();
+                    }}
                     className={`seller-tab ${activeTab === tab.id
                       ? 'border-blue-500 text-blue-600'
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -931,6 +1049,30 @@ const SellerDetails = () => {
 
                 {filteredProducts.length > 0 ? (
                   <div className="space-y-6">
+                    {/* Bannière produits sans type */}
+                    {missingTypeCount > 0 && (
+                      <div className="bg-amber-50 border border-amber-300 rounded-lg p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                        <div className="flex items-start gap-3">
+                          <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                          <div>
+                            <p className="text-sm font-semibold text-amber-800">
+                              {missingTypeCount} produit(s) sans catégorie
+                            </p>
+                            <p className="text-xs text-amber-700 mt-0.5">
+                              Ces produits importés en masse n'ont pas de type défini — ils sont invisibles côté client.
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => { setFixTypeMap({}); setShowFixTypeModal(true); }}
+                          className="flex-shrink-0 flex items-center gap-2 px-4 py-2 bg-amber-600 text-white text-sm font-medium rounded-lg hover:bg-amber-700 transition-colors"
+                        >
+                          <Settings className="w-4 h-4" />
+                          Assigner un type
+                        </button>
+                      </div>
+                    )}
+
                     {/* Barre d'action en masse */}
                     {selectedProductIds.size > 0 && (
                       <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4 space-y-3">
@@ -1327,6 +1469,77 @@ const SellerDetails = () => {
               </div>
             )}
 
+            {/* Modules & SMS Tab */}
+            {activeTab === 'modules' && (
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-1">Modules activés</h3>
+                  <p className="text-sm text-gray-500 mb-4">Activez ou désactivez les modules métier disponibles pour ce vendeur.</p>
+
+                  {modulesLoading ? (
+                    <div className="flex items-center gap-2 text-sm text-gray-400 py-6">
+                      <RefreshCw className="w-4 h-4 animate-spin" /> Chargement...
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {MODULE_LIST.map(mod => (
+                        <div key={mod.key} className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-3 border border-gray-100">
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">{mod.label}</p>
+                            <p className="text-xs text-gray-400">{mod.desc}</p>
+                          </div>
+                          <button
+                            onClick={() => setSellerModules(prev => ({ ...prev, [mod.key]: !prev?.[mod.key] }))}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ${sellerModules?.[mod.key] ? 'bg-blue-600' : 'bg-gray-300'}`}
+                          >
+                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${sellerModules?.[mod.key] ? 'translate-x-6' : 'translate-x-1'}`} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Quota SMS */}
+                <div className="border-t border-gray-100 pt-6">
+                  <h4 className="text-base font-semibold text-gray-900 mb-1">Quota SMS mensuel</h4>
+                  <p className="text-sm text-gray-500 mb-4">Nombre de SMS que ce vendeur peut envoyer par mois via le module Carnet de Créances.</p>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="number" min="0" max="10000"
+                      value={smsQuotaInput}
+                      onChange={e => setSmsQuotaInput(e.target.value)}
+                      className="w-32 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Ex: 50"
+                    />
+                    <span className="text-sm text-gray-500">SMS / mois</span>
+                    <button
+                      onClick={resetSmsCounter}
+                      className="ml-4 text-xs text-gray-400 hover:text-gray-600 border border-gray-200 rounded-lg px-3 py-2 hover:bg-gray-50 transition"
+                    >
+                      Remettre compteur à 0
+                    </button>
+                  </div>
+                </div>
+
+                {/* Bouton save + feedback */}
+                <div className="flex items-center gap-4 pt-2">
+                  <button
+                    onClick={saveModules}
+                    disabled={modulesSaving || modulesLoading}
+                    className="bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-medium rounded-xl px-6 py-2.5 text-sm transition"
+                  >
+                    {modulesSaving ? 'Enregistrement...' : 'Enregistrer les modifications'}
+                  </button>
+                  {modulesMsg && (
+                    <span className={`text-sm font-medium ${modulesMsg.ok ? 'text-green-600' : 'text-red-600'}`}>
+                      {modulesMsg.text}
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Documents Tab */}
             {activeTab === 'documents' && (
               <div>
@@ -1405,6 +1618,110 @@ const SellerDetails = () => {
           </div>
         </div>
       </div>
+
+      {/* Modal fix type — tableau produit par produit */}
+      {showFixTypeModal && (() => {
+        const missingProducts = products.filter(p =>
+          !p.isDeleted && (!p.ClefType || p.ClefType === 'autre' || p.ClefType === '')
+        );
+        const assignedCount = Object.values(fixTypeMap).filter(Boolean).length;
+        return (
+          <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+              {/* Header */}
+              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+                <div className="flex items-center gap-3">
+                  <AlertTriangle className="w-5 h-5 text-amber-500" />
+                  <div>
+                    <h3 className="text-base font-semibold text-gray-900">
+                      Assigner un type — {missingProducts.length} produit(s)
+                    </h3>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      {assignedCount} assigné(s) sur {missingProducts.length}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => { setShowFixTypeModal(false); setFixTypeMap({}); }}
+                  className="p-1 rounded hover:bg-gray-100 text-gray-500"
+                >
+                  <XCircle className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Tableau */}
+              <div className="overflow-y-auto flex-1 px-6 py-3">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-xs text-gray-500 uppercase border-b border-gray-100">
+                      <th className="py-2 text-left font-medium w-12"></th>
+                      <th className="py-2 text-left font-medium">Produit</th>
+                      <th className="py-2 text-left font-medium w-48">Type à assigner</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {missingProducts.map(p => (
+                      <tr key={p._id} className={`${fixTypeMap[p._id] ? 'bg-amber-50/40' : ''}`}>
+                        <td className="py-2 pr-2">
+                          <img
+                            src={p.image1 || 'https://via.placeholder.com/40'}
+                            alt=""
+                            className="w-10 h-10 rounded object-cover border border-gray-200"
+                            onError={e => { e.target.src = 'https://via.placeholder.com/40'; }}
+                          />
+                        </td>
+                        <td className="py-2 pr-4">
+                          <p className="font-medium text-gray-800 truncate max-w-[200px]">{p.name}</p>
+                          <p className="text-xs text-gray-400">{(p.prix || 0).toLocaleString()} F</p>
+                        </td>
+                        <td className="py-2">
+                          <select
+                            value={fixTypeMap[p._id] || ''}
+                            onChange={e => setFixTypeMap(prev => ({ ...prev, [p._id]: e.target.value }))}
+                            className="w-full px-2 py-1.5 border border-gray-300 rounded-lg text-xs focus:ring-2 focus:ring-amber-400 focus:border-amber-400 bg-white"
+                          >
+                            <option value="">— Choisir —</option>
+                            {allTypes.map(t => (
+                              <option key={t._id} value={t._id}>
+                                {t.name}{t.categorieName ? ` — ${t.categorieName}` : ''}
+                              </option>
+                            ))}
+                          </select>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Footer */}
+              <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between gap-3">
+                <p className="text-xs text-gray-500">
+                  Les produits sans type sélectionné ne seront pas modifiés.
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => { setShowFixTypeModal(false); setFixTypeMap({}); }}
+                    className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 text-sm transition-colors"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    onClick={handleFixType}
+                    disabled={assignedCount === 0 || isFixingType}
+                    className="flex items-center gap-2 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:opacity-50 text-sm font-medium transition-colors"
+                  >
+                    {isFixingType
+                      ? <><Loader2 className="w-4 h-4 animate-spin" /> Sauvegarde...</>
+                      : <><CheckCircle className="w-4 h-4" /> Sauvegarder {assignedCount > 0 ? `(${assignedCount})` : ''}</>
+                    }
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Modal de Validation */}
       {showValidateModal && (

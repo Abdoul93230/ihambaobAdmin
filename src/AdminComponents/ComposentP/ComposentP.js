@@ -23,6 +23,7 @@ import {
   Ticket,
   MapPin,
   Map,
+  Truck,
   ChevronRight,
   X,
   Gift,
@@ -66,6 +67,7 @@ import AdminManualRenewal from "@/Pages/admin/AdminManualRenewal";
 import SubscriptionAnalytics from "@/Pages/admin/SubscriptionAnalytics";
 import PromoCodes from "@/Pages/PromoCodes/PromoCodes";
 import GamificationAdmin from "@/Pages/Gamification/GamificationAdmin";
+import AdminSellerShipping from "@/Pages/admin/AdminSellerShipping";
 
 // ─── Navigation groupée ───────────────────────────────────────────────────────
 const SIDEBAR_GROUPS = [
@@ -97,8 +99,9 @@ const SIDEBAR_GROUPS = [
   {
     section: "Livraison",
     items: [
-      { icon: MapPin, label: "Zones de livraison", to: "/Admin/ShippingZonesAdmin" },
-      { icon: Map,    label: "Zones admin",         to: "/Admin/AdminZones" },
+      { icon: Truck,  label: "Expédition vendeurs", to: "/Admin/AdminSellerShipping" },
+      { icon: MapPin, label: "Zones de livraison",  to: "/Admin/ShippingZonesAdmin" },
+      { icon: Map,    label: "Zones admin",          to: "/Admin/AdminZones" },
     ],
   },
   {
@@ -147,6 +150,7 @@ const PAGE_COMPONENTS = {
   Plans: PlanConfiguration,
   AdminSeller,
   GamificationAdmin,
+  AdminSellerShipping,
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────

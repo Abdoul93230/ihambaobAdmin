@@ -267,4 +267,34 @@ export const publicShippingApi = {
   }
 }
 
+// Services API pour la gestion des politiques d'expédition par seller (Admin)
+export const adminShippingApi = {
+  getPolicies: (sellerId, params = {}) =>
+    api.get(`/admin/seller-shipping/${sellerId}`, { params: cleanParams(params) }),
+
+  getStats: (sellerId) =>
+    api.get(`/admin/seller-shipping/${sellerId}/stats`),
+
+  getAvailableZones: (sellerId, params = {}) =>
+    api.get(`/admin/seller-shipping/${sellerId}/zones/available`, { params: cleanParams(params) }),
+
+  setPolicy: (sellerId, data) =>
+    api.post(`/admin/seller-shipping/${sellerId}`, data),
+
+  updatePolicy: (sellerId, policyId, data) =>
+    api.put(`/admin/seller-shipping/${sellerId}/${policyId}`, data),
+
+  deletePolicy: (sellerId, policyId) =>
+    api.delete(`/admin/seller-shipping/${sellerId}/${policyId}`),
+
+  togglePolicy: (sellerId, policyId, isActive) =>
+    api.patch(`/admin/seller-shipping/${sellerId}/${policyId}/toggle`, { isActive }),
+
+  duplicatePolicy: (sellerId, policyId, targetZoneId) =>
+    api.post(`/admin/seller-shipping/${sellerId}/${policyId}/duplicate`, { targetZoneId }),
+
+  calculate: (sellerId, data) =>
+    api.post(`/admin/seller-shipping/${sellerId}/calculate`, data),
+}
+
 export default api
