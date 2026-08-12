@@ -97,7 +97,7 @@ function ModernOrders() {
         order.livraisonDetails?.quartier || ""
       }`.toLowerCase();
       const orderRef = order.reference?.toLowerCase() || "";
-      const orderStatus = order.statusLivraison?.toLowerCase() || "";
+      const orderStatus = order.etatTraitement?.toLowerCase() || "";
 
       return (
         customerName.includes(query) ||
@@ -126,11 +126,17 @@ function ModernOrders() {
 
   const getStatusBadgeStyle = (status) => {
     switch (status?.toLowerCase()) {
-      case "completed":
+      case "livré":
+      case "livraison reçu":
+      case "traité":
         return "bg-green-100 text-green-800";
-      case "en cours":
+      case "en cours de livraison":
+        return "bg-purple-100 text-purple-800";
+      case "reçu par le livreur":
         return "bg-blue-100 text-blue-800";
-      case "échec":
+      case "traitement":
+        return "bg-yellow-100 text-yellow-800";
+      case "annulé":
         return "bg-red-100 text-red-800";
       default:
         return "bg-gray-100 text-gray-800";
@@ -254,10 +260,10 @@ function ModernOrders() {
                         <TableCell>
                           <Badge
                             className={getStatusBadgeStyle(
-                              order.statusLivraison
+                              order.etatTraitement
                             )}
                           >
-                            {order.statusLivraison}
+                            {order.etatTraitement || "traitement"}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right">

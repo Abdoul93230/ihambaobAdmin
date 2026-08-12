@@ -3,13 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select2";
-import {
   AlertTriangle,
   CheckCircle,
   Clock,
@@ -19,26 +12,67 @@ import {
   RefreshCw,
   Lock,
   Store,
+  Package,
+  Truck,
+  XCircle,
 } from "lucide-react";
 import axios from "axios";
 import SUBSCRIPTION_CONFIG from "../../config/subscriptionConfig";
 
 const BackendUrl = process.env.REACT_APP_Backend_Url;
 
-const ETAT_TRAITEMENT_OPTIONS = [
-  { value: "traitement", label: "Traitement", financial: "none" },
-  { value: "reçu par le livreur", label: "Reçu par le livreur", financial: "create_transactions" },
-  { value: "en cours de livraison", label: "En cours de livraison", financial: "create_transactions" },
-  { value: "livraison reçu", label: "Livraison reçu", financial: "confirm_transactions" },
-  { value: "Traité", label: "Traité", financial: "confirm_transactions" },
+// Pipeline linéaire — source de vérité du processus commande
+const PIPELINE = [
+  {
+    value: "traitement",
+    label: "En traitement",
+    sublabel: "Commande reçue, en attente de prise en charge",
+    icon: Clock,
+    financialOnEnter: "none",
+    color: "yellow",
+  },
+  {
+    value: "reçu par le livreur",
+    label: "Remis au livreur",
+    sublabel: "Le livreur a pris en charge la commande",
+    icon: Package,
+    financialOnEnter: "create_transactions",
+    color: "blue",
+  },
+  {
+    value: "en cours de livraison",
+    label: "En livraison",
+    sublabel: "La commande est en route vers le client",
+    icon: Truck,
+    financialOnEnter: "none",
+    color: "purple",
+  },
+  {
+    value: "livré",
+    label: "Livré",
+    sublabel: "Commande livrée — transactions confirmées",
+    icon: CheckCircle,
+    financialOnEnter: "confirm_transactions",
+    color: "green",
+  },
 ];
 
-const STATUS_LIVRAISON_OPTIONS = [
-  { value: "en cours", label: "En cours", financial: "none" },
-  { value: "en route", label: "En route", financial: "none" },
-  { value: "livré", label: "Livré", financial: "confirm_transactions" },
-  { value: "annulé", label: "Annulé", financial: "cancel_refund" },
-];
+// États hors-pipeline
+const TERMINAL_STATES = ["livré", "livraison reçu", "Traité"];
+const CANCELLED_STATES = ["annulé", "Annulée", "annulée"];
+
+const getFinancialActionDescription = (action) => {
+  switch (action) {
+    case "create_transactions":
+      return "Créer les transactions vendeur (argent mis EN_ATTENTE dans les portefeuilles)";
+    case "confirm_transactions":
+      return "Confirmer les transactions — l'argent sera disponible après le délai de sécurité (3–7 jours)";
+    case "cancel_refund":
+      return "Annuler les transactions, rembourser les portefeuilles et restaurer le stock";
+    default:
+      return "Aucune action financière";
+  }
+};
 
 const FinancialOrderManager = ({ order, onOrderUpdate, allProducts = [] }) => {
   const [isUpdating, setIsUpdating] = useState(false);
@@ -50,26 +84,28 @@ const FinancialOrderManager = ({ order, onOrderUpdate, allProducts = [] }) => {
     if (order) calculateFinancialSummary();
   }, [order, allProducts]);
 
+  // ── Détection état courant ────────────────────────────────────────
+  const currentEtat = order?.etatTraitement || "traitement";
+  const isCancelled = CANCELLED_STATES.includes(currentEtat);
+  const isTerminated = TERMINAL_STATES.includes(currentEtat);
+
+  const currentPipelineIndex = PIPELINE.findIndex((s) => s.value === currentEtat);
+  const nextStep = !isCancelled && !isTerminated && currentPipelineIndex < PIPELINE.length - 1
+    ? PIPELINE[currentPipelineIndex + 1]
+    : null;
+
+  // ── Helpers ──────────────────────────────────────────────────────
   const getSellerInfo = async (sellerId) => {
     if (!sellerId) return { rate: SUBSCRIPTION_CONFIG.DEFAULT_COMMISSION, planName: "Starter", storeName: "Boutique" };
     try {
       const res = await axios.get(`${BackendUrl}/seller-info/${sellerId}`);
       const data = res.data?.data || res.data;
       const storeName = data?.storeName || "Boutique";
-
-      // subscriptionId est populé directement (objet PricingPlan complet)
-      const plan = data?.subscriptionId && typeof data.subscriptionId === "object"
-        ? data.subscriptionId
-        : null;
-
-      // Accepter tout plan sauf expiré ou annulé (pending_activation = plan payé non encore activé)
+      const plan = data?.subscriptionId && typeof data.subscriptionId === "object" ? data.subscriptionId : null;
       if (plan && plan.status !== "expired" && plan.status !== "cancelled") {
         const planType = plan.planType || "Starter";
-        // Toujours lire le taux depuis SUBSCRIPTION_CONFIG — source de vérité, jamais depuis la DB
         return { rate: SUBSCRIPTION_CONFIG.getPlanCommission(planType), planName: planType, storeName };
       }
-
-      // Fallback : champ subscription (nom du plan) ou Starter
       const planName = data?.subscription || "Starter";
       return { rate: SUBSCRIPTION_CONFIG.getPlanCommission(planName), planName, storeName };
     } catch (_) {
@@ -79,22 +115,16 @@ const FinancialOrderManager = ({ order, onOrderUpdate, allProducts = [] }) => {
 
   const calculateFinancialSummary = async () => {
     if (!order) return;
-
-    // Source de vérité : transactions existantes
     const transactions = order.transactionInfo || order.transactions || [];
     if (transactions.length > 0) {
-      let totalCommission = 0;
-      let totalNet = 0;
+      let totalCommission = 0, totalNet = 0;
       const bySellerMap = {};
-
       transactions.forEach((t) => {
         if (t.type === "CREDIT_COMMANDE" || !t.type) {
           totalCommission += t.commission || 0;
           totalNet += t.montantNet || 0;
           if (t.sellerId) {
-            if (!bySellerMap[t.sellerId]) {
-              bySellerMap[t.sellerId] = { storeName: t.sellerId, montantBrut: 0, commission: 0, montantNet: 0, taux: t.tauxCommission || 0, planName: "" };
-            }
+            if (!bySellerMap[t.sellerId]) bySellerMap[t.sellerId] = { storeName: t.sellerId, montantBrut: 0, commission: 0, montantNet: 0, taux: t.tauxCommission || 0, planName: "" };
             bySellerMap[t.sellerId].montantBrut += t.montant || 0;
             bySellerMap[t.sellerId].commission += t.commission || 0;
             bySellerMap[t.sellerId].montantNet += t.montantNet || 0;
@@ -102,22 +132,17 @@ const FinancialOrderManager = ({ order, onOrderUpdate, allProducts = [] }) => {
           }
         }
       });
-
-      // Enrichir avec les noms de boutiques
       const bySeller = await Promise.all(
         Object.entries(bySellerMap).map(async ([sid, data]) => {
           const info = await getSellerInfo(sid);
           return { ...data, storeName: info.storeName, planName: info.planName };
         })
       );
-
       setFinancialSummary({ totalCommission, totalNet, bySeller, source: "transaction" });
       return;
     }
 
-    // Fallback : estimation depuis les snapshots produits dans order.prod
     if (!order.prod?.length && !allProducts.length) return;
-
     const bySellerRaw = {};
     order.nbrProduits?.forEach((item) => {
       const produitId = typeof item.produit === "object" ? item.produit?._id : item.produit;
@@ -125,99 +150,65 @@ const FinancialOrderManager = ({ order, onOrderUpdate, allProducts = [] }) => {
         order.prod?.find((p) => String(p._id) === String(produitId)) ||
         allProducts.find((p) => p._id === produitId || p._id === item.produit?._id);
       if (!product) return;
-
-      const sellerId =
-        typeof product.Clefournisseur === "object"
-          ? String(product.Clefournisseur._id || product.Clefournisseur)
-          : String(product.Clefournisseur || "unknown");
-      const storeName =
-        product.Clefournisseur?.storeName || product.Clefournisseur?.name || "Boutique";
+      const sellerId = typeof product.Clefournisseur === "object"
+        ? String(product.Clefournisseur._id || product.Clefournisseur)
+        : String(product.Clefournisseur || "unknown");
+      const storeName = product.Clefournisseur?.storeName || product.Clefournisseur?.name || "Boutique";
       const unitPrice = parseFloat(product.prixPromo) > 0 ? parseFloat(product.prixPromo) : parseFloat(product.prix) || 0;
       const montant = unitPrice * (parseInt(item.quantite) || 0);
-
       if (!bySellerRaw[sellerId]) bySellerRaw[sellerId] = { sellerId, storeName, montantBrut: 0 };
       bySellerRaw[sellerId].montantBrut += montant;
-      if (product.Clefournisseur?.storeName || product.Clefournisseur?.name) {
-        bySellerRaw[sellerId].storeName = storeName;
-      }
+      if (product.Clefournisseur?.storeName || product.Clefournisseur?.name) bySellerRaw[sellerId].storeName = storeName;
     });
-
-    // Récupérer taux réel de chaque seller
     const bySeller = await Promise.all(
       Object.values(bySellerRaw).map(async (s) => {
         const info = await getSellerInfo(s.sellerId);
         const commission = Math.round((s.montantBrut * info.rate) / 100);
-        return {
-          storeName: info.storeName || s.storeName,
-          planName: info.planName,
-          montantBrut: s.montantBrut,
-          commission,
-          montantNet: s.montantBrut - commission,
-          taux: info.rate,
-        };
+        return { storeName: info.storeName || s.storeName, planName: info.planName, montantBrut: s.montantBrut, commission, montantNet: s.montantBrut - commission, taux: info.rate };
       })
     );
-
     const totalCommission = bySeller.reduce((s, v) => s + v.commission, 0);
     const totalNet = bySeller.reduce((s, v) => s + v.montantNet, 0);
-
     setFinancialSummary({ totalCommission, totalNet, bySeller, source: "estimate" });
   };
 
   const getFinancialStatus = () => {
     if (!order) return { status: "unknown", message: "Données manquantes", icon: AlertTriangle, color: "gray" };
     const { etatTraitement, statusLivraison } = order;
-
-    if (statusLivraison === "annulé" || etatTraitement === "Annulée" || etatTraitement === "annulé") {
+    if (CANCELLED_STATES.includes(statusLivraison) || CANCELLED_STATES.includes(etatTraitement))
       return { status: "cancelled", message: "Transactions annulées et remboursées", icon: AlertTriangle, color: "red" };
-    }
-    if (statusLivraison === "livré" || etatTraitement === "livraison reçu" || etatTraitement === "Traité") {
+    if (statusLivraison === "livré" || TERMINAL_STATES.includes(etatTraitement))
       return { status: "confirmed", message: "Transactions confirmées — argent disponible dans 3–7 jours", icon: CheckCircle, color: "green" };
-    }
-    if (etatTraitement === "reçu par le livreur" || etatTraitement === "en cours de livraison") {
+    if (etatTraitement === "reçu par le livreur" || etatTraitement === "en cours de livraison")
       return { status: "pending", message: "Transactions créées — argent en attente dans le portefeuille vendeur", icon: Clock, color: "yellow" };
-    }
     return { status: "none", message: "Aucune transaction créée — en attente de prise en charge", icon: Lock, color: "gray" };
   };
 
-  const handleStatusUpdate = async (type, newValue) => {
-    const currentOption =
-      type === "etat"
-        ? ETAT_TRAITEMENT_OPTIONS.find((o) => o.value === newValue)
-        : STATUS_LIVRAISON_OPTIONS.find((o) => o.value === newValue);
+  // ── Mise à jour statut ────────────────────────────────────────────
+  const handleStatusUpdate = async (newValue) => {
+    const nextPipelineStep = PIPELINE.find((s) => s.value === newValue);
+    const financialAction = newValue === "annulé" ? "cancel_refund" : (nextPipelineStep?.financialOnEnter || "none");
 
-    if (currentOption?.financial !== "none") {
-      setShowConfirmation({ type, newValue, financialAction: currentOption.financial, option: currentOption });
+    if (financialAction !== "none") {
+      setShowConfirmation({ newValue, financialAction, label: nextPipelineStep?.label || newValue });
     } else {
-      await executeStatusUpdate(type, newValue);
+      await executeStatusUpdate(newValue);
     }
   };
 
-  const executeStatusUpdate = async (type, newValue) => {
+  const executeStatusUpdate = async (newValue) => {
     if (!order?._id) return;
     setIsUpdating(true);
     try {
-      const endpoint =
-        type === "etat"
-          ? `${BackendUrl}/command/updateEtatTraitement/${order._id}`
-          : `${BackendUrl}/command/updateStatusLivraison/${order._id}`;
-      const payload = type === "etat" ? { nouvelEtat: newValue } : { nouveauStatus: newValue };
-
-      await axios.put(endpoint, payload);
-
+      await axios.put(`${BackendUrl}/command/updateEtatTraitement/${order._id}`, { nouvelEtat: newValue });
       if (onOrderUpdate) {
         const orderRes = await axios.get(`${BackendUrl}/getCommandesById/${order._id}`);
         onOrderUpdate(orderRes.data.commande);
       }
-
-      const option =
-        type === "etat"
-          ? ETAT_TRAITEMENT_OPTIONS.find((o) => o.value === newValue)
-          : STATUS_LIVRAISON_OPTIONS.find((o) => o.value === newValue);
-
-      if (option?.financial !== "none") {
-        setLastFinancialAction({ action: option.financial, timestamp: new Date(), status: newValue });
-      }
+      const financialAction = newValue === "annulé" ? "cancel_refund"
+        : PIPELINE.find((s) => s.value === newValue)?.financialOnEnter || "none";
+      if (financialAction !== "none")
+        setLastFinancialAction({ action: financialAction, timestamp: new Date(), label: newValue });
     } catch (error) {
       console.error("❌ Erreur mise à jour statut:", error);
       alert("Erreur lors de la mise à jour du statut");
@@ -227,21 +218,11 @@ const FinancialOrderManager = ({ order, onOrderUpdate, allProducts = [] }) => {
     }
   };
 
-  const getFinancialActionDescription = (action) => {
-    switch (action) {
-      case "create_transactions": return "Créer les transactions dans le portefeuille des vendeurs (statut EN_ATTENTE)";
-      case "confirm_transactions": return "Confirmer les transactions — l'argent sera disponible après le délai de sécurité";
-      case "cancel_refund": return "Annuler les transactions, rembourser les portefeuilles et restaurer le stock";
-      default: return "Aucune action financière";
-    }
-  };
-
   const formatPrice = (price) =>
     new Intl.NumberFormat("fr-FR", { style: "currency", currency: "XOF" }).format(price || 0);
 
   const financialStatus = getFinancialStatus();
   const StatusIcon = financialStatus.icon;
-
   const colorClass = {
     green:  { bg: "bg-green-50 border-green-200",  text: "text-green-700",  icon: "text-green-600"  },
     yellow: { bg: "bg-yellow-50 border-yellow-200", text: "text-yellow-700", icon: "text-yellow-600" },
@@ -254,21 +235,132 @@ const FinancialOrderManager = ({ order, onOrderUpdate, allProducts = [] }) => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Wallet className="h-5 w-5" />
-          Gestion Financière de la Commande
+          Gestion de la commande
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
 
-        {/* État financier actuel */}
+        {/* ── Stepper pipeline ─────────────────────────────────── */}
+        {!isCancelled ? (
+          <div className="space-y-4">
+            {/* Étapes */}
+            <div className="flex items-center">
+              {PIPELINE.map((step, i) => {
+                const StepIcon = step.icon;
+                const isDone = isTerminated
+                  ? true
+                  : currentPipelineIndex > i;
+                const isCurrent = !isTerminated && currentPipelineIndex === i;
+                return (
+                  <React.Fragment key={step.value}>
+                    <div className="flex flex-col items-center gap-1.5 flex-1 min-w-0">
+                      <div className={`w-9 h-9 rounded-full flex items-center justify-center border-2 transition-all ${
+                        isDone   ? "bg-green-500 border-green-500 text-white" :
+                        isCurrent? "bg-blue-500 border-blue-500 text-white shadow-md shadow-blue-200" :
+                                   "bg-white border-gray-200 text-gray-300"
+                      }`}>
+                        {isDone
+                          ? <CheckCircle className="h-4 w-4" />
+                          : <StepIcon className="h-4 w-4" />
+                        }
+                      </div>
+                      <span className={`text-xs text-center leading-tight px-1 truncate w-full ${
+                        isCurrent ? "font-semibold text-blue-700" :
+                        isDone    ? "text-green-700 font-medium" :
+                                    "text-gray-400"
+                      }`}>
+                        {step.label}
+                      </span>
+                      {step.financialOnEnter !== "none" && !isDone && !isCurrent && (
+                        <span className="text-xs text-amber-500">💰</span>
+                      )}
+                    </div>
+                    {i < PIPELINE.length - 1 && (
+                      <div className={`h-0.5 flex-shrink-0 w-6 sm:w-8 mb-5 transition-all ${
+                        i < currentPipelineIndex || isTerminated ? "bg-green-400" : "bg-gray-200"
+                      }`} />
+                    )}
+                  </React.Fragment>
+                );
+              })}
+            </div>
+
+            {/* État courant */}
+            {!isTerminated && currentPipelineIndex >= 0 && (
+              <div className="bg-blue-50 border border-blue-100 rounded-lg px-4 py-2.5 text-sm text-blue-800">
+                <span className="font-semibold">{PIPELINE[currentPipelineIndex]?.label}</span>
+                {" — "}
+                <span className="text-blue-600">{PIPELINE[currentPipelineIndex]?.sublabel}</span>
+              </div>
+            )}
+            {isTerminated && (
+              <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-2.5 text-sm text-green-800 flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-green-600 shrink-0" />
+                <span className="font-semibold">Commande terminée</span>
+                {" — "}
+                <span className="text-green-600">{PIPELINE[3].sublabel}</span>
+              </div>
+            )}
+
+            {/* Boutons d'action */}
+            {!isTerminated && (
+              <div className="flex gap-3">
+                {nextStep && (
+                  <Button
+                    onClick={() => handleStatusUpdate(nextStep.value)}
+                    disabled={isUpdating}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center gap-2"
+                  >
+                    {isUpdating ? <RefreshCw className="h-4 w-4 animate-spin" /> : <nextStep.icon className="h-4 w-4" />}
+                    <span>{isUpdating ? "Mise à jour..." : nextStep.label}</span>
+                    {nextStep.financialOnEnter !== "none" && (
+                      <Badge variant="outline" className="text-xs border-white/40 text-white/90 bg-white/10">💰</Badge>
+                    )}
+                  </Button>
+                )}
+                <Button
+                  onClick={() => handleStatusUpdate("annulé")}
+                  disabled={isUpdating}
+                  variant="destructive"
+                  className="flex items-center gap-1.5"
+                >
+                  <XCircle className="h-4 w-4" />
+                  <span className="hidden sm:inline">Annuler</span>
+                </Button>
+              </div>
+            )}
+          </div>
+        ) : (
+          /* État annulé */
+          <div className="space-y-3">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3">
+              <XCircle className="h-5 w-5 text-red-500 shrink-0" />
+              <div>
+                <p className="font-semibold text-red-800">Commande annulée</p>
+                <p className="text-sm text-red-600">Stock restauré · Transactions remboursées</p>
+              </div>
+            </div>
+            <Button
+              onClick={() => handleStatusUpdate("traitement")}
+              disabled={isUpdating}
+              className="w-full bg-orange-600 hover:bg-orange-700 text-white flex items-center justify-center gap-2"
+            >
+              <RefreshCw className="h-4 w-4" />
+              Relancer la commande
+            </Button>
+          </div>
+        )}
+
+        {/* ── État financier ────────────────────────────────────── */}
         <div className={`p-4 rounded-lg border-2 ${colorClass.bg}`}>
           <div className="flex items-center gap-2 mb-1">
             <StatusIcon className={`h-5 w-5 ${colorClass.icon}`} />
-            <span className="font-medium">État Financier Actuel</span>
+            <span className="font-medium">État financier</span>
           </div>
           <p className={`text-sm ${colorClass.text}`}>{financialStatus.message}</p>
         </div>
 
-        {/* Résumé financier */}
+        {/* ── Résumé financier ──────────────────────────────────── */}
         {financialSummary && (
           <div className="space-y-3">
             {financialSummary.source === "estimate" && (
@@ -276,8 +368,6 @@ const FinancialOrderManager = ({ order, onOrderUpdate, allProducts = [] }) => {
                 Estimation indicative — les montants réels seront calculés à la prise en charge
               </div>
             )}
-
-            {/* Totaux globaux */}
             <div className="grid grid-cols-2 gap-3">
               <div className="bg-blue-50 p-3 rounded-lg">
                 <div className="flex items-center gap-1.5 mb-1">
@@ -295,8 +385,6 @@ const FinancialOrderManager = ({ order, onOrderUpdate, allProducts = [] }) => {
                 <div className="text-xs text-green-600">{financialSummary.bySeller.length} vendeur(s)</div>
               </div>
             </div>
-
-            {/* Ventilation par vendeur */}
             {financialSummary.bySeller.length > 0 && (
               <div className="border border-gray-200 rounded-lg overflow-hidden">
                 <div className="bg-gray-50 px-3 py-2 border-b border-gray-200">
@@ -339,74 +427,29 @@ const FinancialOrderManager = ({ order, onOrderUpdate, allProducts = [] }) => {
           </div>
         )}
 
-        {/* Contrôles de statut */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <label className="text-sm font-semibold text-gray-700">État de Traitement</label>
-            <Select value={order?.etatTraitement} onValueChange={(v) => handleStatusUpdate("etat", v)} disabled={isUpdating}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Sélectionner un état" />
-              </SelectTrigger>
-              <SelectContent>
-                {ETAT_TRAITEMENT_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    <div className="flex items-center gap-2">
-                      {option.label}
-                      {option.financial !== "none" && (
-                        <Badge variant="outline" className="text-xs">💰 Action financière</Badge>
-                      )}
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-semibold text-gray-700">Statut de Livraison</label>
-            <Select value={order?.statusLivraison} onValueChange={(v) => handleStatusUpdate("livraison", v)} disabled={isUpdating}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Sélectionner un statut" />
-              </SelectTrigger>
-              <SelectContent>
-                {STATUS_LIVRAISON_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    <div className="flex items-center gap-2">
-                      {option.label}
-                      {option.financial !== "none" && (
-                        <Badge variant="outline" className="text-xs">💰 Action financière</Badge>
-                      )}
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
         {/* Dernière action financière */}
         {lastFinancialAction && (
           <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
             <div className="flex items-center gap-2 mb-1">
               <RefreshCw className="h-4 w-4 text-blue-600" />
-              <span className="text-sm font-medium text-blue-800">Dernière Action Financière</span>
+              <span className="text-sm font-medium text-blue-800">Dernière action financière</span>
             </div>
             <p className="text-sm text-blue-700">{getFinancialActionDescription(lastFinancialAction.action)}</p>
             <p className="text-xs text-blue-500 mt-1">{new Date(lastFinancialAction.timestamp).toLocaleString("fr-FR")}</p>
           </div>
         )}
 
-        {/* Modal de confirmation */}
+        {/* Modal de confirmation pour actions financières */}
         {showConfirmation && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
             <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md mx-4">
-              <h3 className="text-lg font-bold mb-3">Confirmer l'Action Financière</h3>
+              <h3 className="text-lg font-bold mb-3">Confirmer l'action</h3>
               <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded">
                 <p className="text-sm text-yellow-800 mb-1">
-                  <strong>Changement :</strong> {showConfirmation.option.label}
+                  <strong>Nouvel état :</strong> {showConfirmation.label}
                 </p>
                 <p className="text-sm text-yellow-700">
-                  <strong>Action :</strong> {getFinancialActionDescription(showConfirmation.financialAction)}
+                  <strong>Action financière :</strong> {getFinancialActionDescription(showConfirmation.financialAction)}
                 </p>
               </div>
               {financialSummary && (
@@ -425,7 +468,7 @@ const FinancialOrderManager = ({ order, onOrderUpdate, allProducts = [] }) => {
                   Annuler
                 </Button>
                 <Button
-                  onClick={() => executeStatusUpdate(showConfirmation.type, showConfirmation.newValue)}
+                  onClick={() => executeStatusUpdate(showConfirmation.newValue)}
                   disabled={isUpdating}
                   className="bg-blue-600 hover:bg-blue-700 text-white"
                 >

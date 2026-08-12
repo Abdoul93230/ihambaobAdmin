@@ -3,7 +3,6 @@ import { useParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
 import "./AodersDet.css";
 import { Badge } from "../../components/ui/badge";
-import { Button } from "../../components/ui/button";
 import { Separator } from "../../components/ui/separator";
 import {
   Table,
@@ -14,13 +13,6 @@ import {
   TableRow,
 } from "../../components/ui/table";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../../components/ui/select";
-import {
   Package,
   User,
   MapPin,
@@ -29,13 +21,9 @@ import {
   CreditCard,
   AlertCircle,
   Truck,
-  CheckCircle,
-  XCircle,
-  RefreshCw,
 } from "lucide-react";
 import axios from "axios";
 import FinancialOrderManager from "../FinancialOrderManager";
-import { toast } from "react-toastify";
 
 const BackendUrl = process.env.REACT_APP_Backend_Url;
 
@@ -49,10 +37,7 @@ const OrderDetails = ({ allProducts, allCategories }) => {
     sellers: [],
   });
   const [isLoading, setIsLoading] = useState(true);
-  const [isValidating, setIsValidating] = useState(false);
   const [orderDetails, setOrderDetails] = useState(null);
-  const [showValidationModal, setShowValidationModal] = useState(false);
-  const [notification, setNotification] = useState(null);
   const { id } = useParams();
 
   useEffect(() => {
@@ -164,26 +149,6 @@ const OrderDetails = ({ allProducts, allCategories }) => {
     return order?.fraisLivraison || 0;
   };
 
-  const handleValidateOrder = async () => {
-    if (!orderData.order?._id) return;
-
-    setIsValidating(true);
-    try {
-      await axios.put(
-        `${BackendUrl}/mettreAJourStatuts/${orderData.order._id}`
-      );
-      const orderRes = await axios.get(
-        `${BackendUrl}/getCommandesById/${orderData.order._id}`
-      );
-      setOrderData((prev) => ({ ...prev, order: orderRes.data.commande }));
-      // Vous pouvez ajouter une notification de succès ici si vous le souhaitez
-    } catch (error) {
-      console.error("Error validating order:", error);
-      // Vous pouvez ajouter une notification d'erreur ici si vous le souhaitez
-    } finally {
-      setIsValidating(false);
-    }
-  };
 
   const getStatusBadge = (status, type) => {
     const styles = {
@@ -231,8 +196,6 @@ const OrderDetails = ({ allProducts, allCategories }) => {
 
   const { order, user, address, promoCode, suppliers, sellers } = orderData;
 
-  const canValidateOrder = order.statusPayment !== "recu" && !isValidating;
-
   // const calculateTotalShippingCost = () => {
   //   return order?.nbrProduits.reduce((total, item) => {
   //     const product = allProducts?.find((p) => p._id === item.produit);
@@ -244,87 +207,10 @@ const OrderDetails = ({ allProducts, allCategories }) => {
   //   }, 0);
   // };
 
-  const handleConfirmValidation = () => {
-    handleValidateOrder();
-    setShowValidationModal(false);
-  };
-
-  // Fonction pour mise à jour directe d'état
-  const handleStatusUpdate = async (newStatus) => {
-    if (!order?._id) {
-      toast.error("Aucun ID de commande disponible");
-      return;
-    }
-
-    setIsValidating(true);
-    try {
-      
-      // Mettre à jour l'état de traitement
-      await axios.put(
-        `${BackendUrl}/command/updateEtatTraitement/${order._id}`,
-        { nouvelEtat: newStatus }
-      );
-      
-      // Rafraîchir les données de la commande
-      const orderRes = await axios.get(
-        `${BackendUrl}/getCommandesById/${orderData.order._id}`
-      );
-      
-      const updatedOrder = orderRes.data.commande;
-      
-      // Mettre à jour les deux états
-      setOrderData((prev) => ({ ...prev, order: updatedOrder }));
-      setOrderDetails(updatedOrder);
-      
-      // Afficher une notification de succès
-      setNotification({
-        type: 'success',
-        message: `✅ État mis à jour vers: ${newStatus}`,
-        timestamp: Date.now()
-      });
-      
-      // Auto-masquer après 3 secondes
-      setTimeout(() => setNotification(null), 3000);
-    } catch (error) {
-      console.error("Erreur lors de la mise à jour de l'état:", error);
-      // Afficher une notification d'erreur
-      setNotification({
-        type: 'error',
-        message: `❌ Erreur: ${error.message}`,
-        timestamp: Date.now()
-      });
-      
-      // Auto-masquer après 5 secondes
-      setTimeout(() => setNotification(null), 5000);
-    } finally {
-      setIsValidating(false);
-    }
-  };
-
-  // Fonctions déplacées vers FinancialOrderManager pour une meilleure séparation des responsabilités
-
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-2 sm:px-4 lg:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
-        {/* Notification Toast Responsive */}
-        {notification && (
-          <div className={`fixed top-2 left-2 right-2 sm:top-4 sm:right-4 sm:left-auto z-50 p-3 sm:p-4 rounded-lg shadow-lg border max-w-full sm:max-w-md animate-slide-in-right ${
-            notification.type === 'success' 
-              ? 'bg-green-50 border-green-200 text-green-800' 
-              : 'bg-red-50 border-red-200 text-red-800'
-          }`}>
-            <div className="flex items-center justify-between">
-              <span className="font-medium text-sm sm:text-base pr-2">{notification.message}</span>
-              <button
-                onClick={() => setNotification(null)}
-                className="ml-2 text-gray-400 hover:text-gray-600 flex-shrink-0"
-              >
-                ✕
-              </button>
-            </div>
-          </div>
-        )}
-        {/* Header Responsive avec actions contextuelles - FULL WIDTH */}
+        {/* Header - FULL WIDTH */}
         <Card className="w-full bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200 shadow-sm">
           <CardContent className="p-4 sm:p-6">
             <div className="flex flex-col space-y-4 sm:flex-row sm:justify-between sm:items-start sm:space-y-0">
@@ -359,139 +245,9 @@ const OrderDetails = ({ allProducts, allCategories }) => {
               </div>
             </div>
 
-            {/* Actions rapides contextuelles - Responsive */}
-            <div className="mt-4 sm:mt-6">
-              <h3 className="text-sm font-semibold text-gray-700 mb-3">Actions rapides</h3>
-              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-              {/* === COMMANDES ANNULÉES === */}
-              {order?.etatTraitement === "annulé" && (
-                <div className="w-full space-y-2 sm:space-y-0 sm:flex sm:items-center sm:gap-3">
-                  <div className="bg-red-100 border border-red-300 text-red-800 px-3 py-2 rounded-lg flex items-center gap-2 text-sm">
-                    <XCircle className="h-4 w-4 flex-shrink-0" />
-                    <span className="font-medium">Commande annulée</span>
-                  </div>
-                  <Button
-                    onClick={() => handleStatusUpdate("traitement")}
-                    className="w-full sm:w-auto bg-orange-600 hover:bg-orange-700 text-white flex items-center justify-center gap-2 text-sm"
-                    disabled={isValidating}
-                  >
-                    <RefreshCw className="h-4 w-4" />
-                    <span className="hidden sm:inline">Relancer la commande</span>
-                    <span className="sm:hidden">Relancer</span>
-                  </Button>
-                </div>
-              )}
-
-              {/* === COMMANDES LIVRÉES === */}
-              {(order?.etatTraitement === "livré" || order?.etatTraitement === "livraison reçu" || order?.etatTraitement === "Traité") && (
-                <div className="w-full bg-green-100 border border-green-300 text-green-800 px-3 py-2 rounded-lg flex items-center gap-2 text-sm">
-                  <CheckCircle className="h-4 w-4 flex-shrink-0" />
-                  <span className="font-medium">Commande terminée</span>
-                </div>
-              )}
-
-              {/* === COMMANDES EN COURS === */}
-              {!["annulé", "livré", "livraison reçu", "Traité"].includes(order?.etatTraitement) && (
-                <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
-                  {/* Bouton pour marquer comme reçu par livreur */}
-                  {(order?.etatTraitement === "traitement" || order?.etatTraitement === "en cours" || order?.etatTraitement === "validé") && (
-                    <Button
-                      onClick={() => handleStatusUpdate("reçu par le livreur")}
-                      className="bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center gap-2 text-sm"
-                      disabled={isValidating}
-                    >
-                      <Package className="h-4 w-4" />
-                      <span className="hidden sm:inline">Reçu par livreur</span>
-                      <span className="sm:hidden">Reçu</span>
-                    </Button>
-                  )}
-                  
-                  {/* Bouton pour marquer comme en cours de livraison */}
-                  {order?.etatTraitement === "reçu par le livreur" && (
-                    <Button
-                      onClick={() => handleStatusUpdate("en cours de livraison")}
-                      className="bg-purple-600 hover:bg-purple-700 text-white flex items-center justify-center gap-2 text-sm"
-                      disabled={isValidating}
-                    >
-                      <Truck className="h-4 w-4" />
-                      <span className="hidden sm:inline">En livraison</span>
-                      <span className="sm:hidden">Livraison</span>
-                    </Button>
-                  )}
-                  
-                  {/* Bouton pour marquer comme livré */}
-                  {(order?.etatTraitement === "reçu par le livreur" || order?.etatTraitement === "en cours de livraison") && (
-                    <Button
-                      onClick={() => handleStatusUpdate("livré")}
-                      className="bg-green-600 hover:bg-green-700 text-white flex items-center justify-center gap-2 text-sm"
-                      disabled={isValidating}
-                    >
-                      <CheckCircle className="h-4 w-4" />
-                      <span className="hidden sm:inline">Marquer livré</span>
-                      <span className="sm:hidden">Livré</span>
-                    </Button>
-                  )}
-                  
-                  {/* Bouton pour annuler (toujours disponible sauf si terminé) */}
-                  <Button
-                    onClick={() => {
-                      if (window.confirm("Êtes-vous sûr de vouloir annuler cette commande ? Cette action créera des transactions d'annulation.")) {
-                        handleStatusUpdate("annulé");
-                      }
-                    }}
-                    variant="destructive"
-                    className="flex items-center justify-center gap-2 text-sm"
-                    disabled={isValidating}
-                  >
-                    <XCircle className="h-4 w-4" />
-                    <span className="hidden sm:inline">Annuler commande</span>
-                    <span className="sm:hidden">Annuler</span>
-                  </Button>
-                </div>
-              )}
-
-          {/* Bouton de validation général (fallback pour cas non gérés) */}
-          {(!order?.etatTraitement || order?.etatTraitement === "en attente") && (
-            <Button
-              onClick={() => setShowValidationModal(true)}
-              className="bg-green-600 hover:bg-green-700 text-white"
-              disabled={!canValidateOrder}
-            >
-              {isValidating ? "Validation..." : "Valider la commande"}
-            </Button>
-          )}
-              </div>
-            </div>
+            {/* Géré par FinancialOrderManager ci-dessous */}
           </CardContent>
         </Card>
-        
-        {showValidationModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md mx-4">
-            <h2 className="text-xl font-bold mb-4">Valider la commande ?</h2>
-            <p className="text-gray-600 mb-6">
-              Cette action va mettre à jour le statut de la commande. Êtes-vous
-              sûr de vouloir continuer ?
-            </p>
-            <div className="flex justify-end space-x-2">
-              <Button
-                variant="outline"
-                onClick={() => setShowValidationModal(false)}
-                disabled={isValidating}
-              >
-                Annuler
-              </Button>
-              <Button
-                onClick={handleConfirmValidation}
-                disabled={isValidating}
-                className="bg-green-600 hover:bg-green-700 text-white"
-              >
-                Confirmer
-              </Button>
-            </div>
-          </div>
-        </div>
-        )}
         
         {/* Section Informations Client/Livraison - Grille Responsive */}
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
@@ -772,48 +528,72 @@ const OrderDetails = ({ allProducts, allCategories }) => {
                 </Table>
               </div>
             </div>
-            <div className="mt-4 bg-gray-50 p-4 rounded-lg space-y-2">
-              {/* Ventilation par boutique depuis shippingByStore (source unique de vérité) */}
-              {order?.shippingByStore?.length > 1 &&
-                order.shippingByStore.map((entry, i) => (
-                  <div key={i} className="flex justify-between items-center text-sm text-gray-600">
-                    <span>🏪 {entry.storeName}</span>
-                    <span>{formatPrice(entry.shippingCost)}</span>
-                  </div>
-                ))
-              }
-              <div className="flex justify-between items-center font-medium pt-1 border-t border-gray-200">
-                <span>Total frais de livraison</span>
-                <span className="font-bold">{formatPrice(order?.fraisLivraison || 0)}</span>
-              </div>
-            </div>
-
-            {order?.codePro && promoCode && (
-              <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                <div className="flex items-center gap-2">
-                  <CreditCard className="h-4 w-4 text-muted-foreground" />
-                  <span>
-                    Code promo appliqué :{" "}
-                    {formatPrice(promoCode.prixReduiction)} de réduction
+            {/* Résumé financier complet */}
+            <div className="mt-4 bg-gray-50 rounded-xl border border-gray-100 overflow-hidden">
+              <div className="p-4 space-y-3">
+                {/* Sous-total */}
+                <div className="flex justify-between items-center text-sm text-gray-600">
+                  <span>Sous-total (articles)</span>
+                  <span className="font-medium text-gray-900">
+                    {formatPrice(order?.prixTotal || (order?.prix - (order?.fraisLivraison || 0) + (order?.reduction || 0) + (order?.pointsDiscount || 0)))}
                   </span>
                 </div>
-              </div>
-            )}
 
-            {order?.pointsDiscount > 0 && (
-              <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-amber-600">🌿</span>
-                    <span className="font-medium text-amber-800">Points Baobab utilisés</span>
-                  </div>
-                  <div className="text-right">
-                    <span className="font-bold text-amber-800">-{formatPrice(order.pointsDiscount)}</span>
-                    <p className="text-xs text-amber-600">{order.pointsUsed || 0} pts déduits</p>
-                  </div>
+                {/* Frais livraison avec ventilation par boutique */}
+                <div className="flex justify-between items-center text-sm text-gray-600">
+                  <span>Frais de livraison</span>
+                  <span className="font-medium text-gray-900">+ {formatPrice(order?.fraisLivraison || 0)}</span>
                 </div>
+                {order?.shippingByStore?.length > 1 && (
+                  <div className="pl-4 space-y-1">
+                    {order.shippingByStore.map((entry, i) => (
+                      <div key={i} className="flex justify-between items-center text-xs text-gray-400">
+                        <span>🏪 {entry.storeName}</span>
+                        <span>{formatPrice(entry.shippingCost)}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Réduction code promo */}
+                {(order?.reduction > 0 || (order?.codePro && promoCode)) && (
+                  <div className="flex justify-between items-center text-sm bg-green-50 px-3 py-2 rounded-lg">
+                    <div className="flex items-center gap-2 text-green-700">
+                      <CreditCard className="h-4 w-4" />
+                      <span>Code promo
+                        {order?.codePromo && (
+                          <span className="ml-1 text-xs font-bold uppercase tracking-wide text-green-600">
+                            ({order.codePromo})
+                          </span>
+                        )}
+                      </span>
+                    </div>
+                    <span className="font-bold text-green-700">
+                      -{formatPrice(order?.reduction || promoCode?.prixReduiction || 0)}
+                    </span>
+                  </div>
+                )}
+
+                {/* Points Baobab */}
+                {order?.pointsDiscount > 0 && (
+                  <div className="flex justify-between items-center text-sm bg-amber-50 px-3 py-2 rounded-lg">
+                    <div className="flex items-center gap-2 text-amber-700">
+                      <span>🌿</span>
+                      <span>Points Baobab
+                        <span className="ml-1 text-xs text-amber-500">({order.pointsUsed || 0} pts)</span>
+                      </span>
+                    </div>
+                    <span className="font-bold text-amber-700">-{formatPrice(order.pointsDiscount)}</span>
+                  </div>
+                )}
               </div>
-            )}
+
+              {/* Total */}
+              <div className="px-4 py-3 bg-white border-t border-gray-100 flex justify-between items-center">
+                <span className="text-base font-bold text-gray-900">Total payé</span>
+                <span className="text-xl font-extrabold text-teal-600">{formatPrice(order?.prix)}</span>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
