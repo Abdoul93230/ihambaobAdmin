@@ -21,6 +21,7 @@ import {
   CreditCard,
   AlertCircle,
   Truck,
+  Store,
 } from "lucide-react";
 import axios from "axios";
 import FinancialOrderManager from "../FinancialOrderManager";
@@ -142,6 +143,34 @@ const OrderDetails = ({ allProducts, allCategories }) => {
   const getProductSnapshot = (item) => {
     const id = typeof item.produit === "object" ? item.produit?._id : item.produit;
     return order?.prod?.find((p) => String(p._id) === String(id)) || null;
+  };
+
+  // Grouper les produits par vendeur avec leur statut isValideSeller
+  const getSellerValidationGroups = () => {
+    if (!order?.nbrProduits) return [];
+    const groups = {};
+    order.nbrProduits.forEach((item) => {
+      const product = getProductSnapshot(item);
+      const supplier = product?.Clefournisseur;
+      const storeId = String(supplier?._id || product?.createdBy || 'unknown');
+      if (!groups[storeId]) {
+        groups[storeId] = {
+          storeId,
+          storeName: supplier?.storeName || supplier?.name || 'Vendeur inconnu',
+          logo: supplier?.logo || null,
+          produits: [],
+        };
+      }
+      groups[storeId].produits.push({
+        nom: product?.name || 'Produit supprimé',
+        image: product?.image1 || product?.imageUrl || null,
+        quantite: item.quantite,
+        isValideSeller: item.isValideSeller || false,
+        tailles: item.tailles || [],
+        couleurs: item.couleurs || [],
+      });
+    });
+    return Object.values(groups);
   };
 
   // Frais réels sauvegardés sur la commande (calculés depuis le client par boutique)
@@ -596,6 +625,111 @@ const OrderDetails = ({ allProducts, allCategories }) => {
             </div>
           </CardContent>
         </Card>
+        {/* Section Validation par vendeur - FULL WIDTH */}
+        {(() => {
+          const groups = getSellerValidationGroups();
+          if (!groups.length) return null;
+          const totalProduits = groups.reduce((s, g) => s + g.produits.length, 0);
+          const totalValides  = groups.reduce((s, g) => s + g.produits.filter(p => p.isValideSeller).length, 0);
+          const allDone = totalValides === totalProduits;
+
+          return (
+            <Card className="w-full">
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <Store className="h-5 w-5" />
+                    Validation par vendeur
+                  </div>
+                  <span className={`text-sm font-semibold px-3 py-1 rounded-full ${
+                    allDone
+                      ? 'bg-green-100 text-green-700'
+                      : totalValides === 0
+                        ? 'bg-gray-100 text-gray-600'
+                        : 'bg-yellow-100 text-yellow-700'
+                  }`}>
+                    {totalValides}/{totalProduits} validé{totalProduits > 1 ? 's' : ''}
+                  </span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {groups.map((group) => {
+                  const total     = group.produits.length;
+                  const validated = group.produits.filter(p => p.isValideSeller).length;
+                  const allOk     = validated === total;
+                  const noneOk    = validated === 0;
+
+                  return (
+                    <div key={group.storeId} className="border rounded-xl overflow-hidden">
+                      {/* En-tête seller */}
+                      <div className={`flex items-center justify-between p-3 border-b ${
+                        allOk  ? 'bg-green-50 border-green-100' :
+                        noneOk ? 'bg-gray-50 border-gray-100' :
+                                 'bg-yellow-50 border-yellow-100'
+                      }`}>
+                        <div className="flex items-center gap-2">
+                          {group.logo ? (
+                            <img src={group.logo} alt="Logo"
+                              className="w-9 h-9 rounded-full object-cover border shrink-0" />
+                          ) : (
+                            <div className="w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center shrink-0">
+                              <Store className="h-4 w-4 text-gray-500" />
+                            </div>
+                          )}
+                          <div>
+                            <div className="font-semibold text-sm">{group.storeName}</div>
+                            <div className="text-xs text-gray-500">
+                              {validated}/{total} produit{total > 1 ? 's' : ''} validé{validated > 1 ? 's' : ''}
+                            </div>
+                          </div>
+                        </div>
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                          allOk  ? 'bg-green-100 text-green-700' :
+                          noneOk ? 'bg-gray-100 text-gray-600' :
+                                   'bg-yellow-100 text-yellow-700'
+                        }`}>
+                          {allOk ? '✅ Tout validé' : noneOk ? '⏳ En attente' : `⏳ ${validated}/${total}`}
+                        </span>
+                      </div>
+
+                      {/* Liste des produits du seller */}
+                      <div className="divide-y">
+                        {group.produits.map((prod, idx) => (
+                          <div key={idx} className="flex items-center gap-3 p-3">
+                            {prod.image ? (
+                              <img src={prod.image} alt={prod.nom}
+                                className="w-11 h-11 rounded-lg object-cover border shrink-0" />
+                            ) : (
+                              <div className="w-11 h-11 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
+                                <Package className="h-5 w-5 text-gray-400" />
+                              </div>
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <div className="text-sm font-medium text-gray-800 truncate">{prod.nom}</div>
+                              <div className="text-xs text-gray-500 flex flex-wrap gap-2 mt-0.5">
+                                <span>Qté : {prod.quantite}</span>
+                                {prod.tailles?.length > 0 && (
+                                  <span>Tailles : {prod.tailles.join(', ')}</span>
+                                )}
+                              </div>
+                            </div>
+                            <span className={`px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 ${
+                              prod.isValideSeller
+                                ? 'bg-green-100 text-green-700'
+                                : 'bg-orange-100 text-orange-600'
+                            }`}>
+                              {prod.isValideSeller ? '✓ Validé' : '⏳ En attente'}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </CardContent>
+            </Card>
+          );
+        })()}
       </div>
     </div>
   );
