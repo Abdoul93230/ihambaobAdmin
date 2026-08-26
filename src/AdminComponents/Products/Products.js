@@ -1,10 +1,10 @@
 import React, { useEffect, useState, useMemo, useCallback, useRef } from "react";
-import { 
-  Search, 
-  Star, 
-  ChevronRight, 
-  Loader2, 
-  Filter, 
+import {
+  Search,
+  Star,
+  ChevronRight,
+  Loader2,
+  Filter,
   MoreVertical,
   Eye,
   Clock,
@@ -15,7 +15,9 @@ import {
   Grid3X3,
   List,
   SortAsc,
-  SortDesc
+  SortDesc,
+  ChevronDown,
+  X,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import axios from "axios";
@@ -116,9 +118,34 @@ export default function Products() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSearching, setIsSearching] = useState(false);
 
+  const [typeSearch, setTypeSearch] = useState("");
+  const [showTypeDropdown, setShowTypeDropdown] = useState(false);
+  const typeDropdownRef = useRef(null);
+
   const { toast } = useToast();
   const searchInputRef = useRef(null);
   const debouncedSearch = useDebounce(searchName, 400);
+
+  const filteredTypeOptions = useMemo(
+    () =>
+      typeSearch.trim()
+        ? types.filter((t) =>
+            t.name.toLowerCase().includes(typeSearch.toLowerCase())
+          )
+        : types,
+    [types, typeSearch]
+  );
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (typeDropdownRef.current && !typeDropdownRef.current.contains(e.target)) {
+        setShowTypeDropdown(false);
+        setTypeSearch("");
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   // Products come from the server — no client-side filtering needed
   const paginatedProducts = products;
@@ -369,31 +396,93 @@ export default function Products() {
         <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border space-y-4">
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
             <div className="flex flex-wrap items-center gap-3">
-              {/* Filtre par type */}
+              {/* Filtre par type — combobox compact */}
               <div className="flex items-center gap-2">
                 <Filter className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm font-medium text-muted-foreground">Type:</span>
               </div>
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  variant={selectedType === "All" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setSelectedType("All")}
-                  className="transition-all"
+              <div className="relative" ref={typeDropdownRef}>
+                <button
+                  onClick={() => setShowTypeDropdown((v) => !v)}
+                  className="flex items-center gap-2 h-9 px-3 border border-input rounded-md text-sm bg-background hover:bg-accent min-w-48 max-w-xs"
                 >
-                  Tous
-                </Button>
-                {types.map((type) => (
-                  <Button
-                    key={type._id}
-                    variant={selectedType === type.name ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setSelectedType(type.name)}
-                    className="transition-all"
-                  >
-                    {type.name}
-                  </Button>
-                ))}
+                  <span className="flex-1 text-left truncate">
+                    {selectedType === "All" ? "Tous les types" : selectedType}
+                  </span>
+                  {selectedType !== "All" && (
+                    <span
+                      role="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedType("All");
+                        setCurrentPage(1);
+                      }}
+                      className="text-muted-foreground hover:text-foreground"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </span>
+                  )}
+                  <ChevronDown className={`h-4 w-4 text-muted-foreground flex-shrink-0 transition-transform ${showTypeDropdown ? "rotate-180" : ""}`} />
+                </button>
+
+                {showTypeDropdown && (
+                  <div className="absolute top-full left-0 z-50 mt-1 w-72 bg-white border border-input rounded-lg shadow-lg">
+                    {/* Search input */}
+                    <div className="p-2 border-b">
+                      <div className="relative">
+                        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                        <input
+                          type="text"
+                          placeholder="Rechercher un type…"
+                          value={typeSearch}
+                          onChange={(e) => setTypeSearch(e.target.value)}
+                          className="w-full pl-8 pr-3 py-1.5 text-sm border border-input rounded-md focus:outline-none focus:border-blue-400"
+                          autoFocus
+                        />
+                      </div>
+                    </div>
+                    {/* Options list */}
+                    <div className="max-h-60 overflow-y-auto py-1">
+                      {!typeSearch && (
+                        <button
+                          className={`w-full text-left px-3 py-2 text-sm hover:bg-accent transition-colors ${selectedType === "All" ? "bg-blue-50 text-blue-700 font-medium" : ""}`}
+                          onClick={() => {
+                            setSelectedType("All");
+                            setCurrentPage(1);
+                            setShowTypeDropdown(false);
+                            setTypeSearch("");
+                          }}
+                        >
+                          Tous les types
+                          <span className="ml-2 text-xs text-muted-foreground">({types.length})</span>
+                        </button>
+                      )}
+                      {filteredTypeOptions.map((type) => (
+                        <button
+                          key={type._id}
+                          className={`w-full text-left px-3 py-2 text-sm hover:bg-accent transition-colors ${selectedType === type.name ? "bg-blue-50 text-blue-700 font-medium" : ""}`}
+                          onClick={() => {
+                            setSelectedType(type.name);
+                            setCurrentPage(1);
+                            setShowTypeDropdown(false);
+                            setTypeSearch("");
+                          }}
+                        >
+                          {type.name}
+                        </button>
+                      ))}
+                      {filteredTypeOptions.length === 0 && (
+                        <p className="px-3 py-4 text-sm text-muted-foreground text-center">
+                          Aucun type pour « {typeSearch} »
+                        </p>
+                      )}
+                    </div>
+                    <div className="border-t px-3 py-1.5 text-xs text-muted-foreground bg-slate-50 rounded-b-lg">
+                      {filteredTypeOptions.length} type{filteredTypeOptions.length !== 1 ? "s" : ""}
+                      {typeSearch && ` sur ${types.length}`}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 

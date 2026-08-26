@@ -1021,7 +1021,7 @@ const ProductDetail = () => {
                     variant="outline"
                     size="sm"
                     className="h-10 hover:bg-blue-50 border-blue-300 text-blue-700"
-                    onClick={() => window.open(`https://ihambaobab.onrender.com/ProduitDétail/${id}`, '_blank')}
+                    onClick={() => window.open(`https://ihambaobab.com/ProduitDétail/${id}`, '_blank')}
                   >
                     <ExternalLink className="mr-2 h-4 w-4" />
                     Voir en ligne

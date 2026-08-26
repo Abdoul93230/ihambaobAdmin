@@ -166,9 +166,13 @@ const SellerDetails = () => {
     : (isSuspendedWithSubscription ? "warning" : (hasLinkedSubscription ? "info" : "danger"));
 
   // Plan Starter = pas de marketplace → publication des produits sans effet
-  const isStarterPlan = seller?.planType === 'Starter';
+  // planType peut être direct sur SellerRequest (strict:false) ou via subscriptionId populé
+  const resolvedPlanType = seller?.planType || seller?.subscriptionId?.planType;
+  const isStarterPlan = resolvedPlanType === 'Starter';
   // Seller bloqué/suspendu/expiré → ses produits sont déjà masqués automatiquement
   const isSellerInactive = !seller?.isvalid || ['suspended', 'expired', 'cancelled'].includes(sellerSubscriptionStatus);
+  // Bloquer toutes les actions publication si Starter OU seller inactif
+  const bulkActionsDisabled = isStarterPlan || isSellerInactive;
 
   const subscriptionLabel = hasLinkedSubscription
     ? (sellerSubscriptionStatus === "trial" ? "Essai actif" : isSuspendedWithSubscription ? "Abonnement lié (suspendu)" : "Abonnement valide")
@@ -1085,14 +1089,14 @@ const SellerDetails = () => {
                         {isStarterPlan && (
                           <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-md px-3 py-2 text-xs text-amber-800">
                             <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 text-amber-500" />
-                            <span><strong>Plan Starter</strong> — pas d'accès marketplace. La publication est désactivée pour ce vendeur.</span>
+                            <span><strong>Plan Starter</strong> — pas d'accès marketplace. Toutes les actions de publication sont désactivées.</span>
                           </div>
                         )}
-                        {/* Avertissement vendeur inactif */}
+                        {/* Avertissement vendeur inactif (Pro/Business suspendu/expiré) */}
                         {isSellerInactive && !isStarterPlan && (
                           <div className="flex items-center gap-2 bg-orange-50 border border-orange-200 rounded-md px-3 py-2 text-xs text-orange-800">
                             <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 text-orange-500" />
-                            <span><strong>Vendeur suspendu/expiré</strong> — ses produits sont masqués automatiquement de la marketplace.</span>
+                            <span><strong>Vendeur {sellerSubscriptionStatus === 'expired' ? 'expiré' : sellerSubscriptionStatus === 'cancelled' ? 'résilié' : 'suspendu'}</strong> — ses produits sont masqués automatiquement. Actions désactivées.</span>
                           </div>
                         )}
                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -1102,8 +1106,8 @@ const SellerDetails = () => {
                           <div className="flex flex-wrap gap-2">
                             <button
                               onClick={() => handleBulkValidate("Published")}
-                              disabled={isBulkValidating || isStarterPlan}
-                              title={isStarterPlan ? "Plan Starter — pas d'accès marketplace" : undefined}
+                              disabled={isBulkValidating || bulkActionsDisabled}
+                              title={bulkActionsDisabled ? (isStarterPlan ? "Plan Starter — pas d'accès marketplace" : "Vendeur inactif") : undefined}
                               className="flex items-center space-x-1 px-3 py-1.5 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                             >
                               {isBulkValidating ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle className="w-3 h-3" />}
@@ -1111,16 +1115,18 @@ const SellerDetails = () => {
                             </button>
                             <button
                               onClick={() => handleBulkValidate("Attente")}
-                              disabled={isBulkValidating}
-                              className="flex items-center space-x-1 px-3 py-1.5 bg-yellow-500 text-white text-sm rounded-md hover:bg-yellow-600 disabled:opacity-50 transition-colors"
+                              disabled={isBulkValidating || bulkActionsDisabled}
+                              title={bulkActionsDisabled ? (isStarterPlan ? "Plan Starter — marketplace désactivée" : "Vendeur inactif") : undefined}
+                              className="flex items-center space-x-1 px-3 py-1.5 bg-yellow-500 text-white text-sm rounded-md hover:bg-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                             >
                               {isBulkValidating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Timer className="w-3 h-3" />}
                               <span>Attente</span>
                             </button>
                             <button
                               onClick={() => setShowBulkPanel(v => !v)}
-                              disabled={isBulkValidating}
-                              className="flex items-center space-x-1 px-3 py-1.5 bg-red-600 text-white text-sm rounded-md hover:bg-red-700 disabled:opacity-50 transition-colors"
+                              disabled={isBulkValidating || bulkActionsDisabled}
+                              title={bulkActionsDisabled ? (isStarterPlan ? "Plan Starter — marketplace désactivée" : "Vendeur inactif") : undefined}
+                              className="flex items-center space-x-1 px-3 py-1.5 bg-red-600 text-white text-sm rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                             >
                               <Ban className="w-3 h-3" />
                               <span>Refuser</span>
@@ -1128,8 +1134,9 @@ const SellerDetails = () => {
                             </button>
                             <button
                               onClick={() => handleBulkValidate("UnPublished")}
-                              disabled={isBulkValidating}
-                              className="flex items-center space-x-1 px-3 py-1.5 bg-gray-500 text-white text-sm rounded-md hover:bg-gray-600 disabled:opacity-50 transition-colors"
+                              disabled={isBulkValidating || bulkActionsDisabled}
+                              title={bulkActionsDisabled ? (isStarterPlan ? "Plan Starter — marketplace désactivée" : "Vendeur inactif") : undefined}
+                              className="flex items-center space-x-1 px-3 py-1.5 bg-gray-500 text-white text-sm rounded-md hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                             >
                               {isBulkValidating ? <Loader2 className="w-3 h-3 animate-spin" /> : <PackageX className="w-3 h-3" />}
                               <span>Dépublier</span>
@@ -1153,8 +1160,8 @@ const SellerDetails = () => {
                             />
                             <button
                               onClick={() => handleBulkValidate("Refuser")}
-                              disabled={isBulkValidating}
-                              className="flex items-center space-x-1 px-4 py-1.5 bg-red-600 text-white text-sm rounded-md hover:bg-red-700 disabled:opacity-50 transition-colors"
+                              disabled={isBulkValidating || bulkActionsDisabled}
+                              className="flex items-center space-x-1 px-4 py-1.5 bg-red-600 text-white text-sm rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                             >
                               {isBulkValidating ? <Loader2 className="w-3 h-3 animate-spin" /> : <XCircle className="w-3 h-3" />}
                               <span>Confirmer le refus</span>

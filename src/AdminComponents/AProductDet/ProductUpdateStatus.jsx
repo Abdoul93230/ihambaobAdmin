@@ -124,7 +124,9 @@ const ProductUpdateStatus = () => {
 
       if (productData.Clefournisseur) {
         try {
-          const sellerRes = await axios.get(`${BackendUrl}/getSeller/${productData.Clefournisseur}`);
+          // Clefournisseur peut être un ObjectId populé (objet) ou une string
+          const sellerId = productData.Clefournisseur?._id ?? productData.Clefournisseur;
+          const sellerRes = await axios.get(`${BackendUrl}/getSeller/${String(sellerId)}`);
           setSellerInfo(sellerRes.data.data);
         } catch (error) {
           console.warn("Erreur chargement seller:", error);
@@ -263,9 +265,12 @@ const ProductUpdateStatus = () => {
   const shippingStatusInfo = getStatusInfo(shippingStatus);
   const currentProductStatusInfo = getStatusInfo(product.isPublished);
 
-  const isStarterPlan = sellerInfo?.planType === 'Starter';
+  const resolvedPlanType = sellerInfo?.planType || sellerInfo?.subscriptionId?.planType;
+  const isStarterPlan = resolvedPlanType === 'Starter';
   const sellerStatus = String(sellerInfo?.subscriptionStatus || (sellerInfo?.isvalid ? 'active' : 'suspended')).toLowerCase();
   const isSellerInactive = sellerInfo && (!sellerInfo.isvalid || ['suspended', 'expired', 'cancelled'].includes(sellerStatus));
+  // Bloquer toutes les actions si Starter (pas de marketplace) OU si seller inactif (produits masqués de toute façon)
+  const actionsDisabled = isStarterPlan || isSellerInactive;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white p-6">
@@ -307,7 +312,9 @@ const ProductUpdateStatus = () => {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => window.open(`https://ihambaobab.onrender.com/ProduitDétail/${id}`, '_blank')}
+              disabled={actionsDisabled}
+              title={actionsDisabled ? (isStarterPlan ? "Plan Starter — produit non visible" : "Vendeur inactif — produit masqué") : undefined}
+              onClick={() => window.open(`https://ihambaobab.com/ProduitDétail/${id}`, '_blank')}
             >
               <Eye className="h-4 w-4 mr-2" />
               Voir détail
@@ -453,30 +460,30 @@ const ProductUpdateStatus = () => {
                 <Label htmlFor="productStatus" className="text-sm font-medium">
                   Statut de publication
                 </Label>
-                <Select value={productStatus} onValueChange={setProductStatus}>
+                <Select value={productStatus} onValueChange={setProductStatus} disabled={actionsDisabled}>
                   <SelectTrigger className="w-full mt-1">
                     <SelectValue placeholder="Sélectionnez un statut" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Published" disabled={isStarterPlan}>
+                    <SelectItem value="Published" disabled={actionsDisabled}>
                       <div className="flex items-center space-x-2">
-                        <CheckCircle className={`h-4 w-4 ${isStarterPlan ? 'text-gray-300' : 'text-green-500'}`} />
-                        <span>{isStarterPlan ? 'Publié (indisponible — plan Starter)' : 'Publié'}</span>
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <span>Publié</span>
                       </div>
                     </SelectItem>
-                    <SelectItem value="UnPublished">
+                    <SelectItem value="UnPublished" disabled={actionsDisabled}>
                       <div className="flex items-center space-x-2">
                         <XCircle className="h-4 w-4 text-red-500" />
                         <span>Non publié</span>
                       </div>
                     </SelectItem>
-                    <SelectItem value="Attente">
+                    <SelectItem value="Attente" disabled={actionsDisabled}>
                       <div className="flex items-center space-x-2">
                         <Clock className="h-4 w-4 text-yellow-500" />
                         <span>En attente</span>
                       </div>
                     </SelectItem>
-                    <SelectItem value="Refuser">
+                    <SelectItem value="Refuser" disabled={actionsDisabled}>
                       <div className="flex items-center space-x-2">
                         <AlertTriangle className="h-4 w-4 text-red-600" />
                         <span>Refusé</span>
@@ -490,9 +497,10 @@ const ProductUpdateStatus = () => {
                 <Label htmlFor="validation" className="text-sm font-medium">
                   Statut de validation
                 </Label>
-                <Select 
-                  value={validationStatus.toString()} 
+                <Select
+                  value={validationStatus.toString()}
                   onValueChange={(value) => setValidationStatus(value === "true")}
+                  disabled={actionsDisabled}
                 >
                   <SelectTrigger className="w-full mt-1">
                     <SelectValue />
@@ -581,7 +589,8 @@ const ProductUpdateStatus = () => {
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button
-                      disabled={!hasChanges || isSaving}
+                      disabled={!hasChanges || isSaving || actionsDisabled}
+                      title={actionsDisabled ? (isStarterPlan ? "Plan Starter — marketplace non incluse" : "Vendeur inactif — produits masqués automatiquement") : undefined}
                       className="bg-blue-600 hover:bg-blue-700 transition-colors"
                     >
                       {isSaving ? (
