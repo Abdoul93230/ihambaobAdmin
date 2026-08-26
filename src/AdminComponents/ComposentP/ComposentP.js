@@ -27,6 +27,7 @@ import {
   ChevronRight,
   X,
   Gift,
+  Trash2,
 } from "lucide-react";
 import { Wallet as WalletIcon } from "lucide-react";
 import {
@@ -68,6 +69,7 @@ import SubscriptionAnalytics from "@/Pages/admin/SubscriptionAnalytics";
 import PromoCodes from "@/Pages/PromoCodes/PromoCodes";
 import GamificationAdmin from "@/Pages/Gamification/GamificationAdmin";
 import AdminSellerShipping from "@/Pages/admin/AdminSellerShipping";
+import SellerClean from "../SellerClean/SellerClean";
 
 // ─── Navigation groupée ───────────────────────────────────────────────────────
 const SIDEBAR_GROUPS = [
@@ -94,6 +96,7 @@ const SIDEBAR_GROUPS = [
       { icon: ShoppingCart, label: "Commandes", to: "/Admin/AOrders" },
       { icon: Users,        label: "Clients",   to: "/Admin/ACustomers" },
       { icon: ShoppingBag,  label: "Vendeurs",  to: "/Admin/Sellers" },
+      { icon: Trash2,       label: "Nettoyage vendeur", to: "/Admin/SellerClean" },
     ],
   },
   {
@@ -151,6 +154,7 @@ const PAGE_COMPONENTS = {
   AdminSeller,
   GamificationAdmin,
   AdminSellerShipping,
+  SellerClean,
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────

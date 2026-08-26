@@ -165,6 +165,11 @@ const SellerDetails = () => {
     ? (hasLinkedSubscription ? "success" : "warning")
     : (isSuspendedWithSubscription ? "warning" : (hasLinkedSubscription ? "info" : "danger"));
 
+  // Plan Starter = pas de marketplace → publication des produits sans effet
+  const isStarterPlan = seller?.planType === 'Starter';
+  // Seller bloqué/suspendu/expiré → ses produits sont déjà masqués automatiquement
+  const isSellerInactive = !seller?.isvalid || ['suspended', 'expired', 'cancelled'].includes(sellerSubscriptionStatus);
+
   const subscriptionLabel = hasLinkedSubscription
     ? (sellerSubscriptionStatus === "trial" ? "Essai actif" : isSuspendedWithSubscription ? "Abonnement lié (suspendu)" : "Abonnement valide")
     : (seller?.subscriptionId ? "Abonnement incohérent" : "Aucun abonnement lié");
@@ -1076,6 +1081,20 @@ const SellerDetails = () => {
                     {/* Barre d'action en masse */}
                     {selectedProductIds.size > 0 && (
                       <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4 space-y-3">
+                        {/* Avertissement Starter */}
+                        {isStarterPlan && (
+                          <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-md px-3 py-2 text-xs text-amber-800">
+                            <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 text-amber-500" />
+                            <span><strong>Plan Starter</strong> — pas d'accès marketplace. La publication est désactivée pour ce vendeur.</span>
+                          </div>
+                        )}
+                        {/* Avertissement vendeur inactif */}
+                        {isSellerInactive && !isStarterPlan && (
+                          <div className="flex items-center gap-2 bg-orange-50 border border-orange-200 rounded-md px-3 py-2 text-xs text-orange-800">
+                            <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 text-orange-500" />
+                            <span><strong>Vendeur suspendu/expiré</strong> — ses produits sont masqués automatiquement de la marketplace.</span>
+                          </div>
+                        )}
                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                           <span className="text-sm font-semibold text-indigo-800">
                             {selectedProductIds.size} produit(s) sélectionné(s)
@@ -1083,8 +1102,9 @@ const SellerDetails = () => {
                           <div className="flex flex-wrap gap-2">
                             <button
                               onClick={() => handleBulkValidate("Published")}
-                              disabled={isBulkValidating}
-                              className="flex items-center space-x-1 px-3 py-1.5 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 disabled:opacity-50 transition-colors"
+                              disabled={isBulkValidating || isStarterPlan}
+                              title={isStarterPlan ? "Plan Starter — pas d'accès marketplace" : undefined}
+                              className="flex items-center space-x-1 px-3 py-1.5 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                             >
                               {isBulkValidating ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle className="w-3 h-3" />}
                               <span>Publier</span>

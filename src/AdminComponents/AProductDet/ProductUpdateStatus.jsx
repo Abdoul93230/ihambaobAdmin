@@ -58,6 +58,7 @@ const ProductUpdateStatus = () => {
   
   // États du composant
   const [product, setProduct] = useState(null);
+  const [sellerInfo, setSellerInfo] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setSaving] = useState(false);
   const [creator, setCreator] = useState(null);
@@ -118,6 +119,15 @@ const ProductUpdateStatus = () => {
           setValidator(validatorRes.data.data);
         } catch (error) {
           console.warn("Erreur chargement validateur:", error);
+        }
+      }
+
+      if (productData.Clefournisseur) {
+        try {
+          const sellerRes = await axios.get(`${BackendUrl}/getSeller/${productData.Clefournisseur}`);
+          setSellerInfo(sellerRes.data.data);
+        } catch (error) {
+          console.warn("Erreur chargement seller:", error);
         }
       }
     } catch (error) {
@@ -253,6 +263,10 @@ const ProductUpdateStatus = () => {
   const shippingStatusInfo = getStatusInfo(shippingStatus);
   const currentProductStatusInfo = getStatusInfo(product.isPublished);
 
+  const isStarterPlan = sellerInfo?.planType === 'Starter';
+  const sellerStatus = String(sellerInfo?.subscriptionStatus || (sellerInfo?.isvalid ? 'active' : 'suspended')).toLowerCase();
+  const isSellerInactive = sellerInfo && (!sellerInfo.isvalid || ['suspended', 'expired', 'cancelled'].includes(sellerStatus));
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white p-6">
       <div className="max-w-4xl mx-auto">
@@ -336,6 +350,45 @@ const ProductUpdateStatus = () => {
           </Card>
         )}
 
+        {/* Banner Plan Starter */}
+        {isStarterPlan && (
+          <Card className="mb-4 border-amber-300 bg-amber-50">
+            <CardContent className="p-4">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-semibold text-amber-800 text-sm">
+                    Vendeur sur plan Starter — Marketplace non incluse
+                  </p>
+                  <p className="text-amber-700 text-xs mt-1">
+                    Ce vendeur n'a pas accès à la marketplace. L'option "Publier" est désactivée.
+                    Ses produits ne seront jamais visibles sur la marketplace tant qu'il reste sur ce plan.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Banner Vendeur inactif */}
+        {isSellerInactive && !isStarterPlan && (
+          <Card className="mb-4 border-orange-300 bg-orange-50">
+            <CardContent className="p-4">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="h-5 w-5 text-orange-500 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-semibold text-orange-800 text-sm">
+                    Vendeur {sellerStatus === 'expired' ? 'expiré' : sellerStatus === 'cancelled' ? 'résilié' : 'suspendu'}
+                  </p>
+                  <p className="text-orange-700 text-xs mt-1">
+                    Ce vendeur est inactif — tous ses produits sont masqués automatiquement de la marketplace, indépendamment du statut individuel des produits.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Informations du produit */}
         <Card className="mb-6">
           <CardHeader>
@@ -405,10 +458,10 @@ const ProductUpdateStatus = () => {
                     <SelectValue placeholder="Sélectionnez un statut" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Published">
+                    <SelectItem value="Published" disabled={isStarterPlan}>
                       <div className="flex items-center space-x-2">
-                        <CheckCircle className="h-4 w-4 text-green-500" />
-                        <span>Publié</span>
+                        <CheckCircle className={`h-4 w-4 ${isStarterPlan ? 'text-gray-300' : 'text-green-500'}`} />
+                        <span>{isStarterPlan ? 'Publié (indisponible — plan Starter)' : 'Publié'}</span>
                       </div>
                     </SelectItem>
                     <SelectItem value="UnPublished">
