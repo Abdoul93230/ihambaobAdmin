@@ -297,4 +297,27 @@ export const adminShippingApi = {
     api.post(`/admin/seller-shipping/${sellerId}/calculate`, data),
 }
 
+// Moteur de livraison v3 : modèles, boutiques, livraison offerte, simulateur
+export const shippingV3Api = {
+  getZones: () => api.get('/shipping-v3/zones'),
+
+  getTemplates: () => api.get('/admin/shipping-v3/templates'),
+  createTemplate: (data) => api.post('/admin/shipping-v3/templates', data),
+  updateTemplate: (id, data) => api.put(`/admin/shipping-v3/templates/${id}`, data),
+  deleteTemplate: (id) => api.delete(`/admin/shipping-v3/templates/${id}`),
+  duplicateTemplate: (id, data = {}) => api.post(`/admin/shipping-v3/templates/${id}/duplicate`, data),
+  setDefaultTemplate: (id) => api.post(`/admin/shipping-v3/templates/${id}/default`),
+
+  getCampaigns: () => api.get('/admin/shipping-v3/campaigns'),
+  createCampaign: (data) => api.post('/admin/shipping-v3/campaigns', data),
+  updateCampaign: (id, data) => api.put(`/admin/shipping-v3/campaigns/${id}`, data),
+  deleteCampaign: (id) => api.delete(`/admin/shipping-v3/campaigns/${id}`),
+
+  getSellers: () => api.get('/admin/shipping-v3/sellers'),
+  updateSeller: (sellerId, data) => api.patch(`/admin/shipping-v3/sellers/${sellerId}`, data),
+  bulkUpdateSellers: (data) => api.post('/admin/shipping-v3/sellers/bulk', data),
+
+  simulate: (data) => api.post('/admin/shipping-v3/simulate', data),
+}
+
 export default api

@@ -69,6 +69,7 @@ import SubscriptionAnalytics from "@/Pages/admin/SubscriptionAnalytics";
 import PromoCodes from "@/Pages/PromoCodes/PromoCodes";
 import GamificationAdmin from "@/Pages/Gamification/GamificationAdmin";
 import AdminSellerShipping from "@/Pages/admin/AdminSellerShipping";
+import ShippingCenter from "@/Pages/admin/shipping/ShippingCenter";
 import SellerClean from "../SellerClean/SellerClean";
 
 // ─── Navigation groupée ───────────────────────────────────────────────────────
@@ -102,7 +103,8 @@ const SIDEBAR_GROUPS = [
   {
     section: "Livraison",
     items: [
-      { icon: Truck,  label: "Expédition vendeurs", to: "/Admin/AdminSellerShipping" },
+      { icon: Truck,  label: "Centre de livraison", to: "/Admin/ShippingCenter" },
+      { icon: Package, label: "Anciennes politiques", to: "/Admin/AdminSellerShipping" },
       { icon: MapPin, label: "Zones de livraison",  to: "/Admin/ShippingZonesAdmin" },
       { icon: Map,    label: "Zones admin",          to: "/Admin/AdminZones" },
     ],
@@ -154,6 +156,7 @@ const PAGE_COMPONENTS = {
   AdminSeller,
   GamificationAdmin,
   AdminSellerShipping,
+  ShippingCenter,
   SellerClean,
 };
 
