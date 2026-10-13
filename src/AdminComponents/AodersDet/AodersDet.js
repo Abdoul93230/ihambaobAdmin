@@ -40,6 +40,7 @@ const OrderDetails = ({ allProducts, allCategories }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [orderDetails, setOrderDetails] = useState(null);
   const { id } = useParams();
+  const [confirmingCall, setConfirmingCall] = useState(false);
 
   useEffect(() => {
     const fetchOrderData = async () => {
@@ -225,6 +226,20 @@ const OrderDetails = ({ allProducts, allCategories }) => {
 
   const { order, user, address, promoCode, suppliers, sellers } = orderData;
 
+  // Invité sans code SMS : l'équipe appelle le client puis confirme la commande
+  const confirmPhoneCall = async () => {
+    if (!order?._id) return;
+    setConfirmingCall(true);
+    try {
+      const r = await axios.put(`${BackendUrl}/commande/${order._id}/phone-confirmation`, { confirmed: true });
+      setOrderData((prev) => ({ ...prev, order: { ...prev.order, phoneConfirmation: r.data?.data?.phoneConfirmation || "confirmed" } }));
+    } catch (e) {
+      alert(e?.response?.data?.message || "Confirmation impossible.");
+    } finally {
+      setConfirmingCall(false);
+    }
+  };
+
   // const calculateTotalShippingCost = () => {
   //   return order?.nbrProduits.reduce((total, item) => {
   //     const product = allProducts?.find((p) => p._id === item.produit);
@@ -250,7 +265,26 @@ const OrderDetails = ({ allProducts, allCategories }) => {
                   {order?.isGuestOrder ? (
                     <span className="px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 text-xs font-semibold" title="Commande passée sans compte : client identifié par son numéro">Sans compte</span>
                   ) : null}
+                  {order?.phoneConfirmation === "confirmed" ? (
+                    <span className="px-2 py-0.5 rounded-full bg-green-50 text-green-700 text-xs font-semibold">Numéro confirmé</span>
+                  ) : null}
                 </h1>
+                {order?.phoneConfirmation === "pending" ? (
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 rounded-lg border border-orange-200 bg-orange-50 p-3 text-sm text-orange-900">
+                    <span className="flex-1">
+                      📞 <strong>À confirmer par appel</strong> : le code SMS n'est pas arrivé chez le client. Appelez le{" "}
+                      <a className="font-semibold underline" href={`tel:${order?.livraisonDetails?.numero || ""}`}>{order?.livraisonDetails?.numero}</a>{" "}
+                      avant de lancer la préparation (sinon annulez la commande).
+                    </span>
+                    <button
+                      onClick={confirmPhoneCall}
+                      disabled={confirmingCall}
+                      className="px-3 py-1.5 rounded-md bg-orange-600 text-white font-semibold disabled:opacity-60"
+                    >
+                      {confirmingCall ? "…" : "Client joint : confirmer"}
+                    </button>
+                  </div>
+                ) : null}
                 <div className="flex flex-wrap gap-2 text-sm text-gray-600">
                   <span className="bg-white px-2 py-1 rounded-md font-medium">
                     {new Date(order?.date).toLocaleDateString('fr-FR')}

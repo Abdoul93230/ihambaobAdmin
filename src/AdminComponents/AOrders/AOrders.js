@@ -244,6 +244,9 @@ function ModernOrders() {
                                 {order.isGuestOrder ? (
                                   <span className="px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 text-[10px] font-semibold" title="Commande passée sans compte">Invité</span>
                                 ) : null}
+                                {order.phoneConfirmation === "pending" ? (
+                                  <span className="px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-800 text-[10px] font-semibold" title="SMS non reçu : appeler le client pour confirmer avant préparation">📞 À appeler</span>
+                                ) : null}
                               </span>
                               <span className="text-sm text-muted-foreground">
                                 {order.livraisonDetails?.email}
