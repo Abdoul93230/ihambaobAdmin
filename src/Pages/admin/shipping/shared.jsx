@@ -248,7 +248,7 @@ export function ZonePicker({ zones = [], value, onChange, types, placeholder = "
     const nq = norm(q);
     return zones
       .filter((z) => !types || types.includes(z.type))
-      .filter((z) => !nq || norm(z.fullPath || z.name).includes(nq))
+      .filter((z) => !nq || norm([z.fullPath || z.name, ...(z.aliases || [])].join(" ")).includes(nq))
       .slice(0, 80);
   }, [zones, types, q]);
 
