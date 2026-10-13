@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import { shippingV3Api } from "@/services/api";
 import { Btn, Card, Empty, Field, Modal, Pill, ZonePicker, errMsg, inputClass } from "./shared";
+import ZoneRequestsPanel from "./ZoneRequestsPanel";
 
 const TYPE = {
   country: { label: "Pays", child: "region", childLabel: "région", tone: "sand" },
@@ -307,6 +308,8 @@ export default function ZonesTab({ onZonesChanged }) {
 
   return (
     <div className="space-y-4">
+      <ZoneRequestsPanel onAdded={refresh} />
+
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
         {[
           ["Régions", stats.regions], ["Villes / communes", stats.cities], ["Quartiers", stats.districts], ["Avec point GPS", stats.gps], ["Désactivées", stats.inactive],

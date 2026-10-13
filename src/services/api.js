@@ -326,6 +326,9 @@ export const shippingV3Api = {
   setZoneStatus: (id, data) => api.post(`/admin/shipping-v3/zones/${id}/status`, data),
   mergeZone: (id, targetId) => api.post(`/admin/shipping-v3/zones/${id}/merge`, { targetId }),
 
+  getZoneRequests: (status) => api.get('/admin/shipping-v3/zones/requests', { params: status ? { status } : {} }),
+  addZoneRequest: (id, data = {}) => api.post(`/admin/shipping-v3/zones/requests/${id}/add`, data),
+  setZoneRequestStatus: (id, status) => api.post(`/admin/shipping-v3/zones/requests/${id}/status`, { status }),
   getSizeOverview: () => api.get('/admin/shipping-v3/products/size-overview'),
   bulkSetSize: (data) => api.post('/admin/shipping-v3/products/bulk-size', data),
 }
