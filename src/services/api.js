@@ -325,6 +325,9 @@ export const shippingV3Api = {
   updateZone: (id, data) => api.put(`/admin/shipping-v3/zones/${id}`, data),
   setZoneStatus: (id, data) => api.post(`/admin/shipping-v3/zones/${id}/status`, data),
   mergeZone: (id, targetId) => api.post(`/admin/shipping-v3/zones/${id}/merge`, { targetId }),
+
+  getSizeOverview: () => api.get('/admin/shipping-v3/products/size-overview'),
+  bulkSetSize: (data) => api.post('/admin/shipping-v3/products/bulk-size', data),
 }
 
 export default api
