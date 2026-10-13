@@ -239,8 +239,11 @@ function ModernOrders() {
                               </AvatarFallback>
                             </Avatar>
                             <div className="flex flex-col">
-                              <span className="font-medium">
+                              <span className="font-medium flex items-center gap-1.5">
                                 {order.livraisonDetails?.customerName}
+                                {order.isGuestOrder ? (
+                                  <span className="px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 text-[10px] font-semibold" title="Commande passée sans compte">Invité</span>
+                                ) : null}
                               </span>
                               <span className="text-sm text-muted-foreground">
                                 {order.livraisonDetails?.email}
