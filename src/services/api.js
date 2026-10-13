@@ -62,7 +62,8 @@ api.interceptors.response.use(
     return Promise.reject({
       message: errorMessage,
       status: error.response?.status,
-      errors: error.response?.data?.errors
+      errors: error.response?.data?.errors,
+      data: error.response?.data
     })
   }
 )
@@ -318,6 +319,12 @@ export const shippingV3Api = {
   bulkUpdateSellers: (data) => api.post('/admin/shipping-v3/sellers/bulk', data),
 
   simulate: (data) => api.post('/admin/shipping-v3/simulate', data),
+
+  getAdminZones: () => api.get('/admin/shipping-v3/zones'),
+  createZone: (data) => api.post('/admin/shipping-v3/zones', data),
+  updateZone: (id, data) => api.put(`/admin/shipping-v3/zones/${id}`, data),
+  setZoneStatus: (id, data) => api.post(`/admin/shipping-v3/zones/${id}/status`, data),
+  mergeZone: (id, targetId) => api.post(`/admin/shipping-v3/zones/${id}/merge`, { targetId }),
 }
 
 export default api

@@ -1,11 +1,13 @@
 import React, { useCallback, useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
-import { Calculator, Gift, Layers, Loader2, RefreshCw, Store, Truck } from "lucide-react";
+import { Calculator, Gift, Layers, Loader2, MapPin, RefreshCw, Store, Truck } from "lucide-react";
 import { shippingV3Api } from "@/services/api";
 import TemplatesTab from "./TemplatesTab";
 import SellersTab from "./SellersTab";
 import CampaignsTab from "./CampaignsTab";
 import SimulatorTab from "./SimulatorTab";
+import ZonesTab from "./ZonesTab";
 import { Btn, errMsg } from "./shared";
 
 const TABS = [
@@ -13,6 +15,7 @@ const TABS = [
   { key: "sellers", label: "Boutiques", icon: Store },
   { key: "campaigns", label: "Livraison offerte", icon: Gift },
   { key: "simulator", label: "Simulateur", icon: Calculator },
+  { key: "zones", label: "Zones", icon: MapPin },
 ];
 
 /** Centre de livraison : tarifs, lieux d'expédition des boutiques, livraison offerte */
@@ -28,6 +31,13 @@ export default function ShippingCenter() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [simPreset, setSimPreset] = useState(null);
+  const location = useLocation();
+
+  // Lien du menu « Zones » (…?tab=zones) alors que la page est déjà ouverte
+  useEffect(() => {
+    const t = new URLSearchParams(location.search).get("tab");
+    if (TABS.some((x) => x.key === t)) setTab(t);
+  }, [location.search]);
 
   const loadAll = useCallback(async () => {
     const [t, s, c] = await Promise.all([shippingV3Api.getTemplates(), shippingV3Api.getSellers(), shippingV3Api.getCampaigns()]);
@@ -60,6 +70,16 @@ export default function ShippingCenter() {
     })();
     shippingV3Api.getZones().then((r) => alive && setZones(r?.data || [])).catch((e) => alive && toast.error(`Zones : ${errMsg(e)}`));
     return () => { alive = false; };
+  }, [loadAll]);
+
+  const reloadZones = useCallback(async () => {
+    try {
+      const r = await shippingV3Api.getZones();
+      setZones(r?.data || []);
+      await loadAll();
+    } catch (e) {
+      toast.error(errMsg(e));
+    }
   }, [loadAll]);
 
   const go = (key) => {
@@ -124,6 +144,8 @@ export default function ShippingCenter() {
         <SellersTab sellers={sellers} templates={templates} zones={zones} reload={reload} onSimulate={(s) => { setSimPreset({ ...s }); go("simulator"); }} />
       ) : tab === "campaigns" ? (
         <CampaignsTab campaigns={campaigns} zones={zones} sellers={sellers} reload={reload} />
+      ) : tab === "zones" ? (
+        <ZonesTab onZonesChanged={reloadZones} />
       ) : (
         <SimulatorTab sellers={sellers} templates={templates} zones={zones} preset={simPreset} />
       )}

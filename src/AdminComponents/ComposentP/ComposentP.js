@@ -22,7 +22,6 @@ import {
   RefreshCw,
   Ticket,
   MapPin,
-  Map,
   Truck,
   ChevronRight,
   X,
@@ -105,8 +104,7 @@ const SIDEBAR_GROUPS = [
     items: [
       { icon: Truck,  label: "Centre de livraison", to: "/Admin/ShippingCenter" },
       { icon: Package, label: "Anciennes politiques", to: "/Admin/AdminSellerShipping" },
-      { icon: MapPin, label: "Zones de livraison",  to: "/Admin/ShippingZonesAdmin" },
-      { icon: Map,    label: "Zones admin",          to: "/Admin/AdminZones" },
+      { icon: MapPin, label: "Zones",               to: "/Admin/ShippingCenter?tab=zones" },
     ],
   },
   {
