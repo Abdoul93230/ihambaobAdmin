@@ -111,7 +111,7 @@ function CampaignDialog({ campaign, zones, sellers, onClose, onSaved }) {
           </Field>
         </div>
 
-        <Field label="Distances concernées" hint="Aucune case cochée = toutes">
+        <Field label="Distances concernées" hint="Aucune case cochée = toutes les livraisons nationales (jamais l’international)">
           <div className="flex flex-wrap gap-1.5 mt-1">
             {RELATIONS.filter((r) => r.key !== "international").map((r) => {
               const on = c.relations.includes(r.key);
@@ -222,7 +222,7 @@ export default function CampaignsTab({ campaigns, zones, sellers, reload }) {
                   <dt className="text-gray-500">Minimum</dt>
                   <dd className="text-gray-700">{c.minParcelSubtotal ? `${money(c.minParcelSubtotal)} d’articles par boutique` : "Aucun"}</dd>
                   <dt className="text-gray-500">Distances</dt>
-                  <dd className="text-gray-700">{c.relations?.length ? c.relations.map((r) => RELATION_LABEL[r]).join(", ") : "Toutes"}</dd>
+                  <dd className="text-gray-700">{c.relations?.length ? c.relations.map((r) => RELATION_LABEL[r]).join(", ") : "Toutes (nationales)"}</dd>
                   <dt className="text-gray-500">Zones</dt>
                   <dd className="text-gray-700">{scope(c.destinationZoneIds, zoneName, "Partout")}</dd>
                   <dt className="text-gray-500">Boutiques</dt>
