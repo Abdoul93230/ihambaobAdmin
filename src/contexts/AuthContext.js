@@ -67,7 +67,9 @@ export const AuthProvider = ({ children }) => {
       if (storedToken && storedUser) {
         // Vérifier si le token est toujours valide
         try {
-          const response = await axios.get(`${BackendUrl}/verifyAdmin`, {
+          // Manager : jeton dédié, vérifié par l'API de l'équipe (pas par /verifyAdmin)
+          const verifyUrl = storedUser?.role === 'manager' ? `${BackendUrl}/api/staff/me` : `${BackendUrl}/verifyAdmin`;
+          const response = await axios.get(verifyUrl, {
             headers: { Authorization: `Bearer ${storedToken}` },
             withCredentials: true,
           });
@@ -167,6 +169,8 @@ export const AuthProvider = ({ children }) => {
     error,
     isAuthenticated: !!user && !!token,
     isAdmin: user?.role === 'admin' || user?.type === 'admin',
+    // Manager : accès limité aux boutiques qui lui sont affectées (messagerie, modération)
+    isManager: user?.role === 'manager',
     isSeller: user?.role === 'seller' || user?.type === 'seller',
     isClient: user?.role === 'client' || user?.type === 'client',
     setError, // Pour permettre de nettoyer les erreurs

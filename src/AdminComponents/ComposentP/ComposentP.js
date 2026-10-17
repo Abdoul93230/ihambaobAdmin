@@ -27,6 +27,10 @@ import {
   X,
   Gift,
   Trash2,
+  Headphones,
+  UserCog,
+  Store,
+  PackageCheck,
 } from "lucide-react";
 import { Wallet as WalletIcon } from "lucide-react";
 import {
@@ -70,6 +74,23 @@ import GamificationAdmin from "@/Pages/Gamification/GamificationAdmin";
 import AdminSellerShipping from "@/Pages/admin/AdminSellerShipping";
 import ShippingCenter from "@/Pages/admin/shipping/ShippingCenter";
 import SellerClean from "../SellerClean/SellerClean";
+import ServiceClient from "../ServiceClient/ServiceClient";
+import Managers from "../ServiceClient/Managers";
+import { MesBoutiques, ModerationProduits, ManagerOrders } from "../ServiceClient/ManagerPages";
+
+// ─── Navigation du manager : uniquement ses boutiques ─────────────────────────
+const MANAGER_GROUPS = [
+  {
+    section: null,
+    items: [
+      { icon: Headphones,   label: "Conversations",       to: "/Admin/ServiceClient" },
+      { icon: Store,        label: "Mes boutiques",       to: "/Admin/MesBoutiques" },
+      { icon: PackageCheck, label: "Produits à modérer",  to: "/Admin/ModerationProduits" },
+      { icon: ShoppingCart, label: "Commandes",           to: "/Admin/ManagerOrders" },
+    ],
+  },
+];
+const MANAGER_PAGES = { ServiceClient, MesBoutiques, ModerationProduits, ManagerOrders };
 
 // ─── Navigation groupée ───────────────────────────────────────────────────────
 const SIDEBAR_GROUPS = [
@@ -79,6 +100,13 @@ const SIDEBAR_GROUPS = [
       { icon: Home,       label: "Tableau de Bord", to: "/Admin",     exact: true },
       { icon: TrendingUp, label: "Analytiques",      to: "/Admin/Analytics" },
       { icon: Inbox,      label: "Messages",          to: "/Admin/Imbox", badge: 5 },
+    ],
+  },
+  {
+    section: "Service client",
+    items: [
+      { icon: Headphones, label: "Conversations boutiques", to: "/Admin/ServiceClient" },
+      { icon: UserCog,    label: "Managers",                to: "/Admin/Managers" },
     ],
   },
   {
@@ -156,6 +184,11 @@ const PAGE_COMPONENTS = {
   AdminSellerShipping,
   ShippingCenter,
   SellerClean,
+  ServiceClient,
+  Managers,
+  MesBoutiques,
+  ModerationProduits,
+  ManagerOrders,
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -164,8 +197,8 @@ function isActive(to, exact, pathname) {
   return pathname === to || pathname.startsWith(to + "/");
 }
 
-function getCurrentPageLabel(pathname) {
-  for (const group of SIDEBAR_GROUPS) {
+function getCurrentPageLabel(pathname, groups = SIDEBAR_GROUPS) {
+  for (const group of groups) {
     for (const item of group.items) {
       if (isActive(item.to, item.exact, pathname)) return item.label;
     }
@@ -174,7 +207,7 @@ function getCurrentPageLabel(pathname) {
 }
 
 // ─── SidebarContent ───────────────────────────────────────────────────────────
-function SidebarContent({ pathname, onClose, logout }) {
+function SidebarContent({ pathname, onClose, logout, groups = SIDEBAR_GROUPS, subtitle = "Administration" }) {
   return (
     <div className="flex flex-col h-full bg-slate-900 text-white">
       {/* Logo */}
@@ -185,7 +218,7 @@ function SidebarContent({ pathname, onClose, logout }) {
           </div>
           <div>
             <p className="font-bold text-sm leading-tight">Ihambaoba</p>
-            <p className="text-[10px] text-slate-400 leading-tight">Administration</p>
+            <p className="text-[10px] text-slate-400 leading-tight">{subtitle}</p>
           </div>
         </div>
         {onClose && (
@@ -197,7 +230,7 @@ function SidebarContent({ pathname, onClose, logout }) {
 
       {/* Nav scrollable */}
       <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-0.5">
-        {SIDEBAR_GROUPS.map((group, gi) => (
+        {groups.map((group, gi) => (
           <div key={gi} className={gi > 0 ? "mt-5" : ""}>
             {group.section && (
               <p className="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-slate-500">
@@ -255,16 +288,21 @@ function AdminDashboard({ allCategories, allProducts }) {
   const params = useParams();
   const location = useLocation();
   const admin = JSON.parse(localStorage.getItem("AdminEcomme"));
-  const { logout } = useAuth();
+  const { logout, isManager } = useAuth();
 
-  const PageComponent = PAGE_COMPONENTS[params.op] || Overview;
-  const pageLabel = getCurrentPageLabel(location.pathname);
+  // Manager : seulement ses pages (le backend refuse de toute façon les routes admin)
+  const groups = isManager ? MANAGER_GROUPS : SIDEBAR_GROUPS;
+  const subtitle = isManager ? "Espace manager" : "Administration";
+  const PageComponent = isManager
+    ? MANAGER_PAGES[params.op] || ServiceClient
+    : PAGE_COMPONENTS[params.op] || Overview;
+  const pageLabel = isManager && !MANAGER_PAGES[params.op] ? "Conversations" : getCurrentPageLabel(location.pathname, groups);
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
       {/* ── Sidebar desktop ─────────────────────────────────── */}
       <aside className="hidden md:flex md:flex-col w-60 shrink-0 h-screen border-r border-slate-800">
-        <SidebarContent pathname={location.pathname} logout={logout} />
+        <SidebarContent pathname={location.pathname} logout={logout} groups={groups} subtitle={subtitle} />
       </aside>
 
       {/* ── Sidebar mobile overlay ──────────────────────────── */}
@@ -279,6 +317,8 @@ function AdminDashboard({ allCategories, allProducts }) {
               pathname={location.pathname}
               onClose={() => setMobileSidebarOpen(false)}
               logout={logout}
+              groups={groups}
+              subtitle={subtitle}
             />
           </div>
         </div>
@@ -299,7 +339,7 @@ function AdminDashboard({ allCategories, allProducts }) {
 
             {/* Breadcrumb / titre page */}
             <div className="flex items-center gap-2 text-sm">
-              <span className="text-gray-400 hidden sm:block">Admin</span>
+              <span className="text-gray-400 hidden sm:block">{isManager ? "Manager" : "Admin"}</span>
               <ChevronRight className="w-3.5 h-3.5 text-gray-300 hidden sm:block" />
               <span className="font-semibold text-gray-800">{pageLabel}</span>
             </div>
@@ -344,7 +384,7 @@ function AdminDashboard({ allCategories, allProducts }) {
                     <p className="text-xs font-semibold text-gray-800 leading-tight">
                       {admin?.name || "Admin"}
                     </p>
-                    <p className="text-[10px] text-gray-400 leading-tight">Administrateur</p>
+                    <p className="text-[10px] text-gray-400 leading-tight">{isManager ? "Manager" : "Administrateur"}</p>
                   </div>
                 </button>
               </DropdownMenuTrigger>
