@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Search, Send, Paperclip, StickyNote, Zap, CheckCircle2, RotateCcw, ShieldAlert, AlertTriangle,
-  Loader2, Store, User, Package, ShoppingBag, Clock, Wifi, WifiOff, X, Plus, Trash2, UserCheck, ChevronLeft, Bell,
+  Loader2, Store, User, Package, ShoppingBag, Clock, Wifi, WifiOff, X, Plus, Trash2, UserCheck, ChevronLeft, Bell, Mic,
 } from "lucide-react";
+import { VoicePlayer, useVoiceRecorder, RecordingBar } from "./Voice";
 import { useAuth } from "@/contexts/AuthContext";
 import { staffApi, useStaffSocket, errMsg, fcfa, timeShort, waitingFor, duration, notifyStaff } from "./staffApi";
 
@@ -41,7 +42,7 @@ function ConversationItem({ c, active, onClick, typing }) {
           <p className="text-[11px] text-teal-700 truncate">{c.store?.name}</p>
           <div className="flex items-center justify-between gap-2 mt-0.5">
             <p className={`text-xs truncate ${typing ? "text-teal-600 italic" : c.unread ? "text-gray-800" : "text-gray-500"}`}>
-              {typing ? "écrit…" : `${c.lastMessage?.from === "store" ? "Vous : " : ""}${c.lastMessage?.text || ""}`}
+              {typing ? typing : `${c.lastMessage?.from === "store" ? "Vous : " : ""}${c.lastMessage?.text || ""}`}
             </p>
             <div className="flex items-center gap-1 shrink-0">
               {c.flagged ? <ShieldAlert className="w-3.5 h-3.5 text-amber-500" title="Coordonnées masquées" /> : null}
@@ -94,6 +95,7 @@ function Bubble({ m }) {
         {(m.attachments || []).map((u) => (
           <a key={u} href={u} target="_blank" rel="noreferrer"><img src={u} alt="" className="rounded-lg mb-1.5 max-h-60 object-cover" /></a>
         ))}
+        {m.audio?.url || m.localUrl ? <VoicePlayer url={m.audio?.url || m.localUrl} durationMs={m.audio?.durationMs} mine={mine} /> : null}
         {m.text ? <p className="text-sm whitespace-pre-wrap break-words">{m.text}</p> : null}
         {m.masked ? (
           <p className={`flex items-center gap-1 text-[10px] mt-1 ${mine ? "text-white/80" : "text-amber-600"}`} title={`Texte d'origine : ${m.originalText || ""}`}>
@@ -260,8 +262,8 @@ export default function ServiceClient() {
       notifyStaff("Client en attente", `${c.client?.name || "Un client"} attend une réponse de ${c.store?.name || "la boutique"}`);
       setList((prev) => prev.map((x) => (x.id === c.id ? { ...x, escalatedAt: c.escalatedAt } : x)));
     },
-    typing: ({ conversationId, typing: on, from, name }) => {
-      setTyping((t) => ({ ...t, [conversationId]: { ...t[conversationId], ...(from === "client" ? { client: on } : { staff: on ? name : null }) } }));
+    typing: ({ conversationId, typing: on, from, name, kind }) => {
+      setTyping((t) => ({ ...t, [conversationId]: { ...t[conversationId], ...(from === "client" ? { client: on ? (kind === "audio" ? "enregistre un vocal…" : "écrit…") : false } : { staff: on ? name : null }) } }));
     },
   });
 
@@ -323,6 +325,47 @@ export default function ServiceClient() {
       });
     } else {
       staffApi.send(activeId, payload).then(done).catch(fail);
+    }
+  };
+
+  // ── Vocal ──
+  const [voiceSending, setVoiceSending] = useState(false);
+  const recorder = useVoiceRecorder({
+    onStart: () => socket?.emit("typing:start", { conversationId: activeRef.current, kind: "audio" }),
+    onStop: () => socket?.emit("typing:stop", { conversationId: activeRef.current }),
+  });
+  const startVoice = async () => {
+    try { await recorder.start(); } catch { alert("Micro indisponible : autorisez l'accès au micro dans le navigateur."); }
+  };
+  const sendVoice = async () => {
+    const rec = await recorder.stop();
+    if (!rec || !activeId) return;
+    const convId = activeId;
+    const clientTempId = `s-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    const localUrl = URL.createObjectURL(rec.blob);
+    setMessages((prev) => [...prev, {
+      id: clientTempId, clientTempId, from: "store", text: "", localUrl, audio: { url: null, durationMs: rec.durationMs },
+      createdAt: new Date().toISOString(), pending: true, author: { name: me?.staff?.name },
+    }]);
+    setVoiceSending(true);
+    try {
+      const up = await staffApi.uploadAudio(rec.blob);
+      const audio = { url: up.url, durationMs: up.durationMs || rec.durationMs };
+      const payload = { conversationId: convId, text: "", audio, clientTempId };
+      const done = (msg) => setMessages((prev) => prev.map((m) => (m.clientTempId === clientTempId ? { ...msg, localUrl } : m)));
+      if (socket?.connected) {
+        socket.timeout(10000).emit("message:send", payload, (err, ack) => {
+          if (!err && ack?.ok) return done(ack.message);
+          staffApi.send(convId, payload).then(done).catch(() => {});
+        });
+      } else {
+        done(await staffApi.send(convId, payload));
+      }
+    } catch (e) {
+      setMessages((prev) => prev.map((m) => (m.clientTempId === clientTempId ? { ...m, pending: false, failed: true } : m)));
+      alert(errMsg(e, "Vocal non envoyé."));
+    } finally {
+      setVoiceSending(false);
     }
   };
 
@@ -436,7 +479,7 @@ export default function ServiceClient() {
                 <p className="font-semibold text-gray-900 truncate">{conv.client?.name}</p>
                 <p className="text-xs text-gray-500 truncate">
                   écrit à <span className="text-teal-700 font-medium">{conv.store?.name}</span>
-                  {typingHere?.client ? <span className="text-teal-600 italic"> · écrit…</span> : null}
+                  {typingHere?.client ? <span className="text-teal-600 italic"> · {typingHere.client}</span> : null}
                   {typingHere?.staff ? <span className="text-amber-600"> · {typingHere.staff} rédige une réponse</span> : null}
                 </p>
               </div>
@@ -462,7 +505,7 @@ export default function ServiceClient() {
               ) : null}
               {messages.map((m) => <Bubble key={m.id} m={m} />)}
               {typingHere?.client ? (
-                <div className="flex my-1"><div className="bg-white border border-gray-100 rounded-2xl px-3 py-2 text-xs text-gray-500 italic">{conv.client?.name?.split(" ")[0]} écrit…</div></div>
+                <div className="flex my-1"><div className="bg-white border border-gray-100 rounded-2xl px-3 py-2 text-xs text-gray-500 italic">{conv.client?.name?.split(" ")[0]} {typingHere.client}</div></div>
               ) : null}
               <div ref={bottomRef} />
             </div>
@@ -487,6 +530,9 @@ export default function ServiceClient() {
                     <input type="file" accept="image/*" className="hidden" onChange={onFile} />
                   </label>
                 ) : null}
+                {recorder.recording ? (
+                  <RecordingBar elapsed={recorder.elapsed} level={recorder.level} onCancel={recorder.cancel} onSend={sendVoice} sending={voiceSending} />
+                ) : (
                 <textarea
                   value={text}
                   onChange={(e) => onType(e.target.value)}
@@ -495,9 +541,16 @@ export default function ServiceClient() {
                   placeholder={internal ? "Note visible uniquement par l'équipe…" : `Répondre au nom de ${conv.store?.name}… (Entrée pour envoyer)`}
                   className="flex-1 resize-none text-sm border border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500/30 bg-white"
                 />
-                <button onClick={() => send()} disabled={!text.trim()} className={`p-2.5 rounded-xl text-white ${internal ? "bg-amber-500" : "bg-[#30A08B]"} disabled:opacity-40`}>
-                  <Send className="w-5 h-5" />
-                </button>
+                )}
+                {recorder.recording ? null : !internal && !text.trim() ? (
+                  <button onClick={startVoice} className="p-2.5 rounded-xl text-white bg-[#30A08B] hover:bg-[#1F7A69]" title="Enregistrer un message vocal">
+                    <Mic className="w-5 h-5" />
+                  </button>
+                ) : (
+                  <button onClick={() => send()} disabled={!text.trim()} className={`p-2.5 rounded-xl text-white ${internal ? "bg-amber-500" : "bg-[#30A08B]"} disabled:opacity-40`}>
+                    <Send className="w-5 h-5" />
+                  </button>
+                )}
               </div>
               {!internal ? <p className="text-[10px] text-gray-400 mt-1.5">Les numéros, e-mails et liens externes sont masqués automatiquement dans les deux sens.</p> : null}
             </footer>

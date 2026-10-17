@@ -36,6 +36,12 @@ export const staffApi = {
   createManager: (body) => axios.post(`${BackendUrl}/api/staff/managers`, body, auth()).then((r) => r.data.data),
   updateManager: (id, body) => axios.put(`${BackendUrl}/api/staff/managers/${id}`, body, auth()).then((r) => r.data.data),
   deleteManager: (id) => axios.delete(`${BackendUrl}/api/staff/managers/${id}`, auth()),
+  uploadAudio: (blob) => {
+    const ext = /mp4/.test(blob.type) ? "m4a" : /ogg/.test(blob.type) ? "ogg" : "webm";
+    const fd = new FormData();
+    fd.append("audio", blob, `vocal-${Date.now()}.${ext}`);
+    return axios.post(`${BackendUrl}/api/messaging/upload-audio`, fd, { ...auth(), timeout: 90000 }).then((r) => r.data);
+  },
   upload: (file) => {
     const fd = new FormData();
     fd.append("image", file);
