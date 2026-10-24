@@ -104,13 +104,16 @@ function Sellers() {
       {/* Header */}
       <div className="mb-6">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-4">
-          <h1 className="text-2xl font-bold text-gray-900">Fournisseurs</h1>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Vendeurs & Boutiques</h1>
+            <p className="text-xs text-gray-500 mt-0.5">Gestion des comptes marchands et créations</p>
+          </div>
           <button
-            onClick={() => navigate("/Admin/AddFournisseur")}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors self-start"
+            onClick={() => navigate("/Admin/AddSeller")}
+            className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors self-start font-semibold shadow-sm"
           >
             <Plus className="w-4 h-4" />
-            Ajouter un fournisseur
+            Créer un vendeur
           </button>
         </div>
 

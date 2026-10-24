@@ -29,6 +29,7 @@ import {
   Trash2,
   Headphones,
   UserCog,
+  UserPlus,
   Store,
   PackageCheck,
 } from "lucide-react";
@@ -74,9 +75,11 @@ import GamificationAdmin from "@/Pages/Gamification/GamificationAdmin";
 import AdminSellerShipping from "@/Pages/admin/AdminSellerShipping";
 import ShippingCenter from "@/Pages/admin/shipping/ShippingCenter";
 import SellerClean from "../SellerClean/SellerClean";
+import DeletionRequests from "../DeletionRequests/DeletionRequests";
 import ServiceClient from "../ServiceClient/ServiceClient";
 import Managers from "../ServiceClient/Managers";
 import { MesBoutiques, ModerationProduits, ManagerOrders } from "../ServiceClient/ManagerPages";
+import AddSeller from "../AddSeller/AddSeller";
 
 // ─── Navigation du manager : uniquement ses boutiques ─────────────────────────
 const MANAGER_GROUPS = [
@@ -124,7 +127,9 @@ const SIDEBAR_GROUPS = [
       { icon: ShoppingCart, label: "Commandes", to: "/Admin/AOrders" },
       { icon: Users,        label: "Clients",   to: "/Admin/ACustomers" },
       { icon: ShoppingBag,  label: "Vendeurs",  to: "/Admin/Sellers" },
-      { icon: Trash2,       label: "Nettoyage vendeur", to: "/Admin/SellerClean" },
+      { icon: UserPlus,     label: "Créer un vendeur", to: "/Admin/AddSeller" },
+      { icon: Trash2,       label: "Nettoyage vendeur",      to: "/Admin/SellerClean" },
+      { icon: Trash2,       label: "Suppressions comptes",   to: "/Admin/DeletionRequests" },
     ],
   },
   {
@@ -168,6 +173,7 @@ const PAGE_COMPONENTS = {
   AodersDet,
   Sellers,
   SellerDet,
+  AddSeller,
   AddCategorie,
   ProductPub,
   ProductUpdateStatus,
@@ -184,6 +190,7 @@ const PAGE_COMPONENTS = {
   AdminSellerShipping,
   ShippingCenter,
   SellerClean,
+  DeletionRequests,
   ServiceClient,
   Managers,
   MesBoutiques,
