@@ -24,6 +24,31 @@ import {
 } from "lucide-react";
 import { toast } from "react-toastify";
 
+
+/**
+ * Réduit une image avant l'envoi (1024 px max, JPEG) : envoi plus rapide, logo léger
+ * pour les clients (en général moins de 300 Ko).
+ */
+async function compressImage(file, maxSide = 1024, quality = 0.85) {
+  if (!file?.type?.startsWith("image/") || file.type === "image/svg+xml" || file.type === "image/gif") return file;
+  try {
+    const bitmap = await createImageBitmap(file);
+    const scale = Math.min(1, maxSide / Math.max(bitmap.width, bitmap.height));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(bitmap.width * scale);
+    canvas.height = Math.round(bitmap.height * scale);
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#FFFFFF"; // fond blanc pour les PNG transparents passés en JPEG
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    const blob = await new Promise((res) => canvas.toBlob(res, "image/jpeg", quality));
+    if (!blob || blob.size >= file.size) return file;
+    return new File([blob], file.name.replace(/\.[^.]+$/, "") + ".jpg", { type: "image/jpeg" });
+  } catch {
+    return file; // format non lisible par le navigateur (ex. HEIC) : envoyé tel quel
+  }
+}
+
 const BackendUrl = process.env.REACT_APP_Backend_Url;
 
 const COUNTRIES = [
@@ -181,7 +206,7 @@ export default function AddSeller() {
       formData.append("planType", planType);
 
       if (logoFile) {
-        formData.append("logo", logoFile);
+        formData.append("logo", await compressImage(logoFile));
       }
 
       const res = await axios.post(`${BackendUrl}/api/adminSeller/create-seller`, formData, {
@@ -193,9 +218,14 @@ export default function AddSeller() {
 
       setCreatedData(res.data.data);
       toast.success(res.data.message || "Boutique créée et activée avec succès !");
+      (res.data.warnings || []).forEach((w) => toast.warn(w, { autoClose: 10000 }));
     } catch (err) {
       console.error("Erreur création vendeur:", err);
-      const msg = err.response?.data?.message || err.response?.data?.error?.message || "Erreur lors de la création du vendeur.";
+      // 413 : fichier refusé par le serveur web (nginx) — sans en-têtes CORS, le navigateur n'a souvent aucune réponse
+      const tooLarge = err.response?.status === 413 || (!err.response && logoFile);
+      const msg = tooLarge
+        ? "Envoi refusé par le serveur : le fichier est trop lourd."
+        : err.response?.data?.message || err.response?.data?.error?.message || "Erreur lors de la création du vendeur.";
       toast.error(msg);
     } finally {
       setLoading(false);
