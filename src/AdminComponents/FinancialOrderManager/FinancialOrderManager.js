@@ -74,10 +74,23 @@ const getFinancialActionDescription = (action) => {
   }
 };
 
+// Mêmes codes que le backend (services/orderTrace.js)
+const CANCEL_REASONS = [
+  { value: "client_injoignable", label: "Client injoignable" },
+  { value: "client_annule", label: "Annulée à la demande du client" },
+  { value: "rupture_stock", label: "Article en rupture de stock" },
+  { value: "hors_zone", label: "Adresse hors zone de livraison" },
+  { value: "doublon", label: "Commande en double" },
+  { value: "autre", label: "Autre raison" },
+];
+
 const FinancialOrderManager = ({ order, onOrderUpdate, allProducts = [] }) => {
   const [isUpdating, setIsUpdating] = useState(false);
   const [financialSummary, setFinancialSummary] = useState(null);
   const [showConfirmation, setShowConfirmation] = useState(null);
+  // Annulation : raison obligatoire (montrée au vendeur et au client)
+  const [cancelReason, setCancelReason] = useState("");
+  const [cancelNote, setCancelNote] = useState("");
   const [lastFinancialAction, setLastFinancialAction] = useState(null);
 
   useEffect(() => {
@@ -200,7 +213,12 @@ const FinancialOrderManager = ({ order, onOrderUpdate, allProducts = [] }) => {
     if (!order?._id) return;
     setIsUpdating(true);
     try {
-      await axios.put(`${BackendUrl}/command/updateEtatTraitement/${order._id}`, { nouvelEtat: newValue });
+      await axios.put(`${BackendUrl}/command/updateEtatTraitement/${order._id}`, {
+        nouvelEtat: newValue,
+        ...(newValue === "annulé" ? { cancelReason, cancelNote: cancelNote.trim() } : {}),
+      });
+      setCancelReason("");
+      setCancelNote("");
       if (onOrderUpdate) {
         const orderRes = await axios.get(`${BackendUrl}/getCommandesById/${order._id}`);
         onOrderUpdate(orderRes.data.commande);
@@ -211,7 +229,7 @@ const FinancialOrderManager = ({ order, onOrderUpdate, allProducts = [] }) => {
         setLastFinancialAction({ action: financialAction, timestamp: new Date(), label: newValue });
     } catch (error) {
       console.error("❌ Erreur mise à jour statut:", error);
-      alert("Erreur lors de la mise à jour du statut");
+      alert(error.response?.data?.message || "Erreur lors de la mise à jour du statut");
     } finally {
       setIsUpdating(false);
       setShowConfirmation(null);
@@ -452,6 +470,28 @@ const FinancialOrderManager = ({ order, onOrderUpdate, allProducts = [] }) => {
                   <strong>Action financière :</strong> {getFinancialActionDescription(showConfirmation.financialAction)}
                 </p>
               </div>
+              {showConfirmation.newValue === "annulé" && (
+                <div className="mb-4">
+                  <label className="block text-sm font-semibold text-gray-800 mb-1">Raison de l'annulation</label>
+                  <select
+                    value={cancelReason}
+                    onChange={(e) => setCancelReason(e.target.value)}
+                    className="w-full border border-gray-300 rounded px-2 py-2 text-sm"
+                  >
+                    <option value="">— Choisir —</option>
+                    {CANCEL_REASONS.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
+                  </select>
+                  <textarea
+                    value={cancelNote}
+                    onChange={(e) => setCancelNote(e.target.value)}
+                    placeholder={cancelReason === "autre" ? "Précisez la raison (obligatoire)" : "Précision (facultatif)"}
+                    rows={2}
+                    maxLength={300}
+                    className="w-full mt-2 border border-gray-300 rounded px-2 py-2 text-sm"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Le vendeur et le client verront cette raison.</p>
+                </div>
+              )}
               {financialSummary && (
                 <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded text-sm text-blue-800">
                   <strong>Impact :</strong> {formatPrice(financialSummary.totalNet)} net pour {financialSummary.bySeller.length} vendeur(s)
@@ -469,7 +509,7 @@ const FinancialOrderManager = ({ order, onOrderUpdate, allProducts = [] }) => {
                 </Button>
                 <Button
                   onClick={() => executeStatusUpdate(showConfirmation.newValue)}
-                  disabled={isUpdating}
+                  disabled={isUpdating || (showConfirmation.newValue === "annulé" && (!cancelReason || (cancelReason === "autre" && !cancelNote.trim())))}
                   className="bg-blue-600 hover:bg-blue-700 text-white"
                 >
                   {isUpdating ? "Mise à jour..." : "Confirmer"}

@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import axios from "axios";
 import FinancialOrderManager from "../FinancialOrderManager";
+import OrderJournal from "../Livreurs/OrderJournal";
 
 const BackendUrl = process.env.REACT_APP_Backend_Url;
 
@@ -368,6 +369,11 @@ const OrderDetails = ({ allProducts, allCategories }) => {
             onOrderUpdate={(updatedOrder) => setOrderData(prev => ({ ...prev, order: updatedOrder }))}
             allProducts={allProducts}
           />
+        </div>
+
+        {/* Journal (qui a fait quoi, quand) et remises boutique → livreur → client */}
+        <div className="mt-6">
+          <OrderJournal orderId={order?._id} />
         </div>
 
         {/* Section Produits de la Commande - FULL WIDTH */}

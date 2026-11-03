@@ -75,6 +75,7 @@ import ShippingCenter from "@/Pages/admin/shipping/ShippingCenter";
 import SellerClean from "../SellerClean/SellerClean";
 import DeletionRequests from "../DeletionRequests/DeletionRequests";
 import ServiceClient from "../ServiceClient/ServiceClient";
+import Livreurs from "../Livreurs/Livreurs";
 import Managers from "../ServiceClient/Managers";
 import { MesBoutiques, ModerationProduits, ManagerOrders } from "../ServiceClient/ManagerPages";
 import AddSeller from "../AddSeller/AddSeller";
@@ -122,6 +123,7 @@ const SIDEBAR_GROUPS = [
     section: "Commerce",
     items: [
       { icon: ShoppingCart, label: "Commandes", to: "/Admin/AOrders" },
+      { icon: Truck,        label: "Livreurs",  to: "/Admin/Livreurs" },
       { icon: Users,        label: "Clients",   to: "/Admin/ACustomers" },
       { icon: ShoppingBag,  label: "Vendeurs",  to: "/Admin/Sellers" },
       { icon: UserPlus,     label: "Créer un vendeur", to: "/Admin/AddSeller" },
@@ -159,7 +161,8 @@ const SIDEBAR_GROUPS = [
 
 const PAGE_COMPONENTS = {
   Analytics,
-  Imbox: ServiceClient, // ancien chat support : désormais dans les conversations
+  Imbox: ServiceClient,
+  Livreurs, // ancien chat support : désormais dans les conversations
   Products,
   ProductDet: AProductDet,
   ProductUpdat: AProductUpdat,
