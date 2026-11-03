@@ -567,7 +567,7 @@ export default function ServiceClient() {
             {conv.client?.since ? <p className="text-xs text-gray-500">Client depuis {new Date(conv.client.since).toLocaleDateString("fr-FR", { month: "long", year: "numeric" })}</p> : null}
           </div>
           <div className="p-4 border-b border-gray-100">
-            <div className="flex items-center gap-2 mb-2"><Store className="w-4 h-4 text-gray-400" /><p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Boutique</p></div>
+            <div className="flex items-center gap-2 mb-2"><Store className="w-4 h-4 text-gray-400" /><p className="text-xs font-semibold uppercase tracking-wide text-gray-500">{conv.store?.support ? "Canal" : "Boutique"}</p></div>
             <div className="flex items-center gap-2">
               {conv.store?.logo ? <img src={conv.store.logo} alt="" className="w-8 h-8 rounded-full object-cover" /> : null}
               <p className="font-semibold text-gray-900">{conv.store?.name}</p>
@@ -580,7 +580,7 @@ export default function ServiceClient() {
             </div>
           ) : null}
           <div className="p-4 border-b border-gray-100">
-            <div className="flex items-center gap-2 mb-2"><ShoppingBag className="w-4 h-4 text-gray-400" /><p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Commandes chez la boutique</p></div>
+            <div className="flex items-center gap-2 mb-2"><ShoppingBag className="w-4 h-4 text-gray-400" /><p className="text-xs font-semibold uppercase tracking-wide text-gray-500">{conv.store?.support ? "Dernières commandes du client" : "Commandes chez la boutique"}</p></div>
             {detail.orders?.length ? detail.orders.map((o) => (
               <div key={o.id} className="text-xs py-1.5 border-b border-gray-50 last:border-0">
                 <div className="flex justify-between"><span className="font-semibold text-gray-800">{o.reference}</span><span className="font-semibold">{fcfa(o.total)}</span></div>
@@ -597,7 +597,7 @@ export default function ServiceClient() {
                   {storeManagers.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
                 </select>
               ) : <p className="text-sm text-gray-800">{conv.assignedTo?.name || "Sans responsable"}</p>}
-              {isAdmin && !storeManagers.length ? <p className="text-[11px] text-orange-600 mt-1">Aucun manager n'est affecté à cette boutique.</p> : null}
+              {isAdmin && !storeManagers.length ? <p className="text-[11px] text-orange-600 mt-1">{conv.store?.support ? "Aucun manager n'a accès au support (Managers → cocher « Support Ihambaobab »)." : "Aucun manager n'est affecté à cette boutique."}</p> : null}
             </div>
             <div className="flex items-center gap-2 text-xs text-gray-600"><Clock className="w-3.5 h-3.5" /> 1re réponse : {duration(conv.firstResponseMs)}</div>
           </div>

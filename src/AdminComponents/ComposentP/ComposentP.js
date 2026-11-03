@@ -3,7 +3,6 @@ import { Link, useParams, useLocation } from "react-router-dom";
 import {
   Home,
   TrendingUp,
-  Inbox,
   Package,
   Users,
   ShoppingCart,
@@ -46,7 +45,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 // Import all page components
 import Analytics from "../Analytics/Analytics";
-import Imbox from "../Inbox/Imbox";
 import Products from "../Products/Products";
 import AProductDet from "../AProductDet/AProductDet";
 import ProductUpdateStatus from "../AProductDet/ProductUpdateStatus";
@@ -102,13 +100,12 @@ const SIDEBAR_GROUPS = [
     items: [
       { icon: Home,       label: "Tableau de Bord", to: "/Admin",     exact: true },
       { icon: TrendingUp, label: "Analytiques",      to: "/Admin/Analytics" },
-      { icon: Inbox,      label: "Messages",          to: "/Admin/Imbox", badge: 5 },
     ],
   },
   {
     section: "Service client",
     items: [
-      { icon: Headphones, label: "Conversations boutiques", to: "/Admin/ServiceClient" },
+      { icon: Headphones, label: "Conversations (boutiques + support)", to: "/Admin/ServiceClient" },
       { icon: UserCog,    label: "Managers",                to: "/Admin/Managers" },
     ],
   },
@@ -162,7 +159,7 @@ const SIDEBAR_GROUPS = [
 
 const PAGE_COMPONENTS = {
   Analytics,
-  Imbox,
+  Imbox: ServiceClient, // ancien chat support : désormais dans les conversations
   Products,
   ProductDet: AProductDet,
   ProductUpdat: AProductUpdat,

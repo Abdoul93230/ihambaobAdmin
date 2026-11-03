@@ -5,7 +5,6 @@ import { ToastContainer } from "react-toastify";
 import Admin from "./Pages/Admin";
 import { useState, useEffect } from "react";
 import AdminConnection from "./AdminComponents/AdminConnection/AdminConnection";
-import io from "socket.io-client";
 import "reactjs-popup/dist/index.css";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -22,19 +21,6 @@ function AppContent() {
   const [allCategories, setAllCategories] = useState([]);
   const [allProducts, setAllProducts] = useState([]);
   const { isAuthenticated, loading } = useAuth(); // Utilisation du contexte
-
-  useEffect(() => {
-    // Socket.io setup
-    const socket = io(BackendUrl);
-
-    socket.on("new_message_user", (data) => {
-      // console.log("Nouveau message reçu :");
-    });
-
-    return () => {
-      socket.disconnect();
-    };
-  }, []);
 
   useEffect(() => {
     // Charger les données seulement si authentifié
