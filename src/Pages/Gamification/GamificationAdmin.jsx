@@ -1,5 +1,12 @@
 import React, { useState, useEffect, useCallback } from "react";
 
+import {
+  Leaf, TreePine, Trees, Zap, Users, Star, ShoppingBag,
+  TrendingUp, Settings, ToggleLeft, ToggleRight, Search,
+  RefreshCw, AlertTriangle, Download, Plus, Minus,
+  ChevronDown, ChevronUp, Gift, Clock, GitBranch, Ban, CheckCircle2, Hourglass
+} from "lucide-react";
+
 // Libellés lisibles des réglages des modules (la clé technique reste visible au survol)
 const CONFIG_LABELS = {
   ratePerThousand: "BP pour 1 000 F d'achat",
@@ -13,12 +20,6 @@ const CONFIG_LABELS = {
   textOnly: "Avis sans photo",
   withPhoto: "Avis avec photo",
 };
-import {
-  Leaf, TreePine, Trees, Zap, Users, Star, ShoppingBag,
-  TrendingUp, Settings, ToggleLeft, ToggleRight, Search,
-  RefreshCw, AlertTriangle, Download, Plus, Minus,
-  ChevronDown, ChevronUp, Gift, Clock, GitBranch, Ban, CheckCircle2, Hourglass
-} from "lucide-react";
 
 const API = process.env.REACT_APP_Backend_Url;
 
