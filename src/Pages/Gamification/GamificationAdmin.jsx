@@ -1,4 +1,18 @@
 import React, { useState, useEffect, useCallback } from "react";
+
+// Libellés lisibles des réglages des modules (la clé technique reste visible au survol)
+const CONFIG_LABELS = {
+  ratePerThousand: "BP pour 1 000 F d'achat",
+  triggerStatus: "Crédités quand la commande est",
+  multiplierArbre: "Bonus niveau Arbre (×)",
+  multiplierGrandBaobab: "Bonus niveau Grand Baobab (×)",
+  points: "Points offerts",
+  pointsPerDay: "Points par jour",
+  pointsParrain: "Points du parrain",
+  pointsFilleul: "Points du filleul",
+  textOnly: "Avis sans photo",
+  withPhoto: "Avis avec photo",
+};
 import {
   Leaf, TreePine, Trees, Zap, Users, Star, ShoppingBag,
   TrendingUp, Settings, ToggleLeft, ToggleRight, Search,
@@ -75,7 +89,7 @@ function ModuleCard({ name, label, description, module, onToggle, onConfigChange
               if (typeof val === "object") return null;
               return (
                 <div key={key} className="flex items-center gap-3">
-                  <label className="w-40 text-xs text-gray-600 font-medium shrink-0">{key}</label>
+                  <label className="w-40 text-xs text-gray-600 font-medium shrink-0" title={key}>{CONFIG_LABELS[key] || key}</label>
                   <input
                     type={typeof val === "number" ? "number" : "text"}
                     defaultValue={val}
@@ -264,7 +278,7 @@ export default function GamificationAdmin() {
     { name: "POINTS_PURCHASE", label: "Points Achat", description: "Points sur commandes livrées" },
     { name: "DAILY_CHECKIN", label: "Check-in Quotidien", description: "1 BP par jour, bonus série" },
     { name: "REVIEW_POINTS", label: "Avis Produits", description: "Points pour avis texte/photo" },
-    { name: "FIRST_ORDER_BONUS", label: "Bonus Première Commande", description: "50 BP à la 1ère commande" },
+    { name: "FIRST_ORDER_BONUS", label: "Bonus Première Commande", description: "Points quand la 1re commande est livrée" },
     { name: "EVENT_POINTS", label: "Événements Spéciaux", description: "Multiplicateurs ponctuels" },
     { name: "REFERRAL", label: "Parrainage", description: "Récompenses parrain + filleul" },
     { name: "REFERRAL_ANTIABUSE", label: "Anti-abus Parrainage", description: "Détection fraude parrainage" },
