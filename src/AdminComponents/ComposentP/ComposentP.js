@@ -31,6 +31,7 @@ import {
   UserPlus,
   Store,
   PackageCheck,
+  Rocket,
 } from "lucide-react";
 import { Wallet as WalletIcon } from "lucide-react";
 import {
@@ -76,6 +77,7 @@ import SellerClean from "../SellerClean/SellerClean";
 import DeletionRequests from "../DeletionRequests/DeletionRequests";
 import ServiceClient from "../ServiceClient/ServiceClient";
 import Livreurs from "../Livreurs/Livreurs";
+import Croissance from "../Croissance/Croissance";
 import Managers from "../ServiceClient/Managers";
 import { MesBoutiques, ModerationProduits, ManagerOrders } from "../ServiceClient/ManagerPages";
 import AddSeller from "../AddSeller/AddSeller";
@@ -101,6 +103,7 @@ const SIDEBAR_GROUPS = [
     items: [
       { icon: Home,       label: "Tableau de Bord", to: "/Admin",     exact: true },
       { icon: TrendingUp, label: "Analytiques",      to: "/Admin/Analytics" },
+      { icon: Rocket,     label: "Croissance",       to: "/Admin/Croissance" },
     ],
   },
   {
@@ -162,6 +165,7 @@ const SIDEBAR_GROUPS = [
 const PAGE_COMPONENTS = {
   Analytics,
   Imbox: ServiceClient,
+  Croissance,
   Livreurs, // ancien chat support : désormais dans les conversations
   Products,
   ProductDet: AProductDet,
