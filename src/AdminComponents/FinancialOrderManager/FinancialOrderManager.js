@@ -66,7 +66,7 @@ const getFinancialActionDescription = (action) => {
     case "create_transactions":
       return "Créer les transactions vendeur (argent mis EN_ATTENTE dans les portefeuilles)";
     case "confirm_transactions":
-      return "Confirmer les transactions — l'argent sera disponible après le délai de sécurité (3–7 jours)";
+      return "Confirmer les transactions — l'argent sera disponible 2 h après la livraison";
     case "cancel_refund":
       return "Annuler les transactions, rembourser les portefeuilles et restaurer le stock";
     default:
@@ -191,7 +191,7 @@ const FinancialOrderManager = ({ order, onOrderUpdate, allProducts = [] }) => {
     if (CANCELLED_STATES.includes(statusLivraison) || CANCELLED_STATES.includes(etatTraitement))
       return { status: "cancelled", message: "Transactions annulées et remboursées", icon: AlertTriangle, color: "red" };
     if (statusLivraison === "livré" || TERMINAL_STATES.includes(etatTraitement))
-      return { status: "confirmed", message: "Transactions confirmées — argent disponible dans 3–7 jours", icon: CheckCircle, color: "green" };
+      return { status: "confirmed", message: "Transactions confirmées — argent disponible 2 h après la livraison", icon: CheckCircle, color: "green" };
     if (etatTraitement === "reçu par le livreur" || etatTraitement === "en cours de livraison")
       return { status: "pending", message: "Transactions créées — argent en attente dans le portefeuille vendeur", icon: Clock, color: "yellow" };
     return { status: "none", message: "Aucune transaction créée — en attente de prise en charge", icon: Lock, color: "gray" };
