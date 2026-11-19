@@ -94,7 +94,8 @@ const OrderDetails = ({ allProducts, allCategories }) => {
   // toutes les 15 s et au retour sur l'onglet, seulement si quelque chose a changé
   useEffect(() => {
     const signature = (o) => o && [o.etatTraitement, o.statusLivraison, o.statusPayment, o.updatedAt, (o.history || []).length,
-      (o.nbrProduits || []).map((p) => (p.isValideSeller ? 1 : 0)).join("")].join("|");
+      (o.nbrProduits || []).map((p) => (p.isValideSeller ? 1 : 0)).join(""),
+      (o.courierProgress?.stores || []).filter((st) => st.pickedUpAt).length, o.courierProgress?.deliveredAt || ""].join("|");
     const refresh = async () => {
       if (document.visibilityState !== "visible") return;
       try {

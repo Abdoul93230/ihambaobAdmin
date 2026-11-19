@@ -311,6 +311,25 @@ const FinancialOrderManager = ({ order, onOrderUpdate, allProducts = [] }) => {
                 <span className="text-blue-600">{PIPELINE[currentPipelineIndex]?.sublabel}</span>
               </div>
             )}
+            {/* Avancement réel du livreur (espace livreur) : colis récupérés boutique par boutique, livraison */}
+            {!isCancelled && (order?.courierProgress?.stores || []).length > 0 && (order.courierProgress.stores.some((st) => st.pickedUpAt) || order.courierProgress.deliveredAt) && (
+              <div className="rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm space-y-1">
+                <p className="font-semibold text-gray-800">
+                  🛵 Livreur : {order.courierProgress.stores.filter((st) => st.pickedUpAt).length}/{order.courierProgress.stores.length} colis récupéré(s)
+                  {order.courierProgress.deliveredAt ? " · livré au client" : ""}
+                </p>
+                {order.courierProgress.stores.map((st) => (
+                  <p key={st.storeId} className={st.pickedUpAt ? "text-green-700" : "text-gray-500"}>
+                    {st.pickedUpAt ? "✓" : "…"} {st.storeName || "Boutique"}
+                    {st.pickedUpAt ? ` — récupéré${st.courier?.name ? ` par ${st.courier.name}` : ""} le ${new Date(st.pickedUpAt).toLocaleString("fr-FR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}` : " — à récupérer"}
+                  </p>
+                ))}
+                {!order.courierProgress.deliveredAt && order.courierProgress.stores.every((st) => st.pickedUpAt) ? (
+                  <p className="text-xs text-gray-500">Tous les colis sont avec le livreur : la commande est en route, rien à faire ici. La livraison sera confirmée par le code du client.</p>
+                ) : null}
+              </div>
+            )}
+
             {isTerminated && (
               <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-2.5 text-sm text-green-800 flex items-center gap-2">
                 <CheckCircle className="h-4 w-4 text-green-600 shrink-0" />
