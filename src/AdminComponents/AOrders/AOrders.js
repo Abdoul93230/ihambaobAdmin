@@ -61,6 +61,21 @@ function ModernOrders() {
     fetchData();
   }, []);
 
+  // Mise à jour automatique des commandes (actions des livreurs, vendeurs, paiements) : toutes les 30 s
+  // et au retour sur l'onglet, sans écran de chargement
+  useEffect(() => {
+    const refresh = async () => {
+      if (document.visibilityState !== "visible") return;
+      try {
+        const res = await axios.get(`${BackendUrl}/getAllCommandes`);
+        if (Array.isArray(res.data?.commandes)) setAllCommandes(res.data.commandes);
+      } catch { /* prochain essai */ }
+    };
+    const id = setInterval(refresh, 30000);
+    document.addEventListener("visibilitychange", refresh);
+    return () => { clearInterval(id); document.removeEventListener("visibilitychange", refresh); };
+  }, []);
+
   // Filtrer les commandes par période
   const filterByTime = (orders) => {
     if (!orders) return [];

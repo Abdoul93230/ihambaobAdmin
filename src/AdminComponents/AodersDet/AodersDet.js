@@ -90,6 +90,26 @@ const OrderDetails = ({ allProducts, allCategories }) => {
     fetchOrderData();
   }, [id]);
 
+  // Mise à jour automatique de la commande (retrait / livraison par le livreur, validation vendeur, paiement) :
+  // toutes les 15 s et au retour sur l'onglet, seulement si quelque chose a changé
+  useEffect(() => {
+    const signature = (o) => o && [o.etatTraitement, o.statusLivraison, o.statusPayment, o.updatedAt, (o.history || []).length,
+      (o.nbrProduits || []).map((p) => (p.isValideSeller ? 1 : 0)).join("")].join("|");
+    const refresh = async () => {
+      if (document.visibilityState !== "visible") return;
+      try {
+        const res = await axios.get(`${BackendUrl}/getCommandesById/${id}`);
+        const fresh = res.data?.commande;
+        if (!fresh) return;
+        setOrderData((prev) => (signature(prev.order) === signature(fresh) ? prev : { ...prev, order: fresh }));
+        setOrderDetails((prev) => (signature(prev) === signature(fresh) ? prev : fresh));
+      } catch { /* prochain essai */ }
+    };
+    const timer = setInterval(refresh, 15000);
+    document.addEventListener("visibilitychange", refresh);
+    return () => { clearInterval(timer); document.removeEventListener("visibilitychange", refresh); };
+  }, [id]);
+
   const calculateShippingCost = (
     product,
     quantity,
